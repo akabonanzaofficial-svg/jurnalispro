@@ -1,392 +1,477 @@
-import React, { useState } from 'react';
-import { Newspaper, Loader2, AlertCircle, Link as LinkIcon, Search, PenTool, Globe, Copy, Check, FileText, Calendar, Sparkles, Zap, Heart, BookOpen, Coffee } from 'lucide-react';
-
-const apiKey = ""; // API key disediakan secara otomatis oleh sistem saat runtime
-
-export default function App() {
-  const [topic, setTopic] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
-  const [copiedIndex, setCopiedIndex] = useState(null);
-  const [mode, setMode] = useState('search'); // 'search' atau 'coverage'
-  const [writingStyle, setWritingStyle] = useState('straight'); // state untuk gaya penulisan
-
-  // Definisi opsi gaya penulisan
-  const styleOptions = [
-    { id: 'straight', label: 'Straight News', icon: Zap },
-    { id: 'feature', label: 'Feature', icon: Heart },
-    { id: 'indepth', label: 'In-Depth', icon: BookOpen },
-    { id: 'kasual', label: 'Kasual', icon: Coffee },
-  ];
-
-  const generateNews = async () => {
-    if (!topic.trim()) {
-      setError('Silakan masukkan data terlebih dahulu.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setResult(null);
-
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-    
-    // Mendapatkan tanggal hari ini secara dinamis untuk memaksa AI mencari berita terbaru
-    const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    
-    // Konfigurasi instruksi gaya penulisan
-    let styleInstruction = "";
-    switch(writingStyle) {
-      case 'straight': 
-        styleInstruction = "GAYA PENULISAN: Straight News (Sangat lugas, formal, to-the-point, menggunakan struktur piramida terbalik, utamakan 5W1H di paragraf awal)."; 
-        break;
-      case 'feature': 
-        styleInstruction = "GAYA PENULISAN: Feature (Bercerita / storytelling, sangat deskriptif, menyentuh emosi, menonjolkan sisi human interest atau suasana kejadian)."; 
-        break;
-      case 'indepth': 
-        styleInstruction = "GAYA PENULISAN: In-Depth / Explanatory (Analisis mendalam, formal, kaya akan konteks dan latar belakang, membedah secara tuntas mengapa dan bagaimana peristiwa itu terjadi)."; 
-        break;
-      case 'kasual': 
-        styleInstruction = "GAYA PENULISAN: Kasual & Populer (Bahasa luwes, santai, kekinian, interaktif, sangat enak dibaca mengalir, cocok untuk pembaca portal berita online modern / anak muda)."; 
-        break;
-      default:
-        styleInstruction = "GAYA PENULISAN: Straight News jurnalistik profesional.";
-    }
-
-    // Menyiapkan prompt dan instruksi sistem berdasarkan mode yang dipilih
-    let promptText = "";
-    let sysInstruct = "";
-
-    if (mode === 'search') {
-      promptText = `Tanggal Hari Ini: ${currentDate}\nTopik/Referensi: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan alat pencarian (Google Search) untuk mencari BERITA TERBARU terkait topik tersebut.\n2. JANGAN menggunakan data lama. Semua berita harus relevan dengan kejadian di sekitar tanggal ${currentDate}.\n\nBerdasarkan hasil pencarian paling mutakhir tersebut, buat 3 artikel berita mendalam. Syarat:\n1. Sepenuhnya berdasarkan fakta terbaru dari hasil pencarian hari ini.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda.\n4. Setiap artikel WAJIB terdiri dari minimal 5 paragraf yang lengkap dan komprehensif. Pisahkan antar paragraf dengan baris baru (Enter).\n5. Wajib ekstrak dan cantumkan nama sumber media utama serta tanggal terbit berita referensi tersebut ke dalam kolom source_name dan source_date.`;
-      sysInstruct = `Kamu adalah jurnalis investigasi kelas dunia. Tanggal hari ini adalah ${currentDate}. Kamu dilarang keras mengarang berita atau memakai data lampau. Kamu WAJIB menggunakan alat pencarian untuk mendapatkan informasi paling mutakhir di internet.`;
-    } else {
-      promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan/Resume Kegiatan Mentah:\n${topic}\n\nINSTRUKSI: Kembangkan catatan singkat atau resume liputan di atas menjadi 3 artikel berita utuh yang mendalam dan siap terbit. Syarat:\n1. Kembangkan fakta-fakta dari catatan menjadi alur berita yang mengalir dengan baik dan natural.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda (misal: angle kutipan/tokoh utama, angle dampak/suasana acara, angle latar belakang kegiatan, dll).\n4. Setiap artikel MUTLAK WAJIB terdiri dari MINIMAL 5 PARAGRAF.\n5. FORMATTING PENTING: Pisahkan setiap paragraf dengan jelas menggunakan baris baru ganda (Enter dua kali / '\\n\\n'). Jangan menggabungkan seluruh teks menjadi satu paragraf panjang.\n6. Untuk kolom source_name isi dengan "Catatan Liputan / Rilis Pers" dan source_date isi dengan tanggal hari ini (${currentDate}) atau sesuai yang ada di catatan.`;
-      sysInstruct = `Kamu adalah editor jurnalis senior yang sangat ahli dalam mengolah catatan liputan mentah menjadi berita artikel utuh, profesional, dan enak dibaca. Tanggal hari ini adalah ${currentDate}. Kamu selalu menulis dengan struktur paragraf yang rapi dan terpisah.`;
-    }
-
-    const payload = {
-      contents: [{
-        parts: [{ text: promptText }]
-      }],
-      systemInstruction: {
-        parts: [{ text: sysInstruct }]
-      },
-      tools: [{ "google_search": {} }], // Mengaktifkan pencarian web untuk fakta terbaru
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "OBJECT",
-          properties: {
-            articles: {
-              type: "ARRAY",
-              items: {
-                type: "OBJECT",
-                properties: {
-                  title: { type: "STRING" },
-                  angle: { type: "STRING" },
-                  content: { type: "STRING" },
-                  source_name: { type: "STRING", description: "Nama media rujukan atau sumber informasi" },
-                  source_date: { type: "STRING", description: "Tanggal publikasi berita atau tanggal kegiatan" }
-                },
-                required: ["title", "angle", "content", "source_name", "source_date"]
-              }
-            }
-          },
-          required: ["articles"]
-        }
-      }
-    };
-
-    const delays = [1000, 2000, 4000, 8000, 16000];
-    let success = false;
-
-    for (let i = 0; i <= 5; i++) {
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Gagal menghubungi server (Status: ${response.status})`);
-        }
-
-        const data = await response.json();
-        
-        const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!textResponse) throw new Error("Format respons tidak sesuai dari AI.");
-        
-        const parsedData = JSON.parse(textResponse);
-
-        const sources = data.candidates?.[0]?.groundingMetadata?.groundingAttributions?.map(a => ({
-          uri: a.web?.uri,
-          title: a.web?.title
-        })).filter(source => source.uri && source.title) || [];
-
-        const uniqueSources = Array.from(new Map(sources.map(item => [item.uri, item])).values());
-
-        setResult({
-          articles: parsedData.articles,
-          sources: uniqueSources
-        });
-        success = true;
-        break;
-
-      } catch (err) {
-        if (i === 5) {
-          setError(err.message || "Terjadi kesalahan saat memproses data. Silakan coba lagi.");
-        } else {
-          await new Promise(r => setTimeout(r, delays[i]));
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JURNALIS PRO - AI Newsroom</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Config for Custom Animations -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            'spin-slow': 'spin 3s linear infinite',
+          }
         }
       }
     }
+  </script>
 
-    setLoading(false);
-  };
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-  const handleCopy = (article, index) => {
-    // Hanya menyalin Judul dan Isi Konten
-    const textToCopy = `${article.title}\n\n${article.content}`;
-    
-    const textArea = document.createElement("textarea");
-    textArea.value = textToCopy;
-    document.body.appendChild(textArea);
-    textArea.select();
-    try {
-      document.execCommand('copy');
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } catch (err) {
-      console.error('Gagal menyalin teks', err);
+  <style>
+    /* Hide scrollbar for horizontal scroll areas */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
     }
-    document.body.removeChild(textArea);
-  };
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans relative pb-20 overflow-x-hidden selection:bg-violet-200 selection:text-violet-900">
 
-  // Tema warna dinamis untuk setiap Angle berita
-  const angleThemes = [
-    { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-100", icon: "text-blue-500" },
-    { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-100", icon: "text-fuchsia-500" },
-    { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-100", icon: "text-amber-500" },
-  ];
+  <!-- Dynamic Background Blobs -->
+  <div class="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-br from-violet-400 via-fuchsia-400 to-orange-400 opacity-15 blur-[100px] -z-10 pointer-events-none animate-pulse duration-1000"></div>
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans relative pb-20 overflow-x-hidden selection:bg-violet-200 selection:text-violet-900">
-      
-      {/* Dynamic Background Blobs */}
-      <div className="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-br from-violet-400 via-fuchsia-400 to-orange-400 opacity-15 blur-[100px] -z-10 pointer-events-none animate-pulse duration-1000"></div>
-
-      {/* Mobile-style Sticky Header with Vibrant Gradient Banner */}
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 shadow-lg shadow-violet-200/50 border-b border-white/10 overflow-hidden">
-        {/* Subtle dot matrix pattern overlay for texture */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        
-        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-center relative z-10">
-          <div className="absolute left-5 w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner">
-            <Newspaper className="w-5 h-5 text-white" />
-          </div>
-          <div className="text-center">
-            <h1 className="text-xl font-black tracking-tight text-white drop-shadow-md">
-              JURNALIS PRO
-            </h1>
-            <p className="text-[10px] font-bold text-violet-100 uppercase tracking-widest mt-0.5">
-              AI Newsroom
-            </p>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Wrapper */}
-      <main className="max-w-2xl mx-auto px-5 pt-6 space-y-6">
-
-        {/* Input Card */}
-        <div className="bg-white/80 backdrop-blur-md p-2 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white">
-          
-          {/* Segmented Control (iOS Style Tabs) */}
-          <div className="flex bg-slate-100/80 p-1.5 rounded-[1.5rem] mb-4 relative">
-            <button 
-              onClick={() => { setMode('search'); setTopic(''); setResult(null); setError(''); }}
-              className={`flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm ${mode === 'search' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Topik
-            </button>
-            <button 
-              onClick={() => { setMode('coverage'); setTopic(''); setResult(null); setError(''); }}
-              className={`flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm ${mode === 'coverage' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Liputan
-            </button>
-          </div>
-
-          <div className="p-2 space-y-5">
-            {mode === 'search' ? (
-              <div className="relative group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-violet-500" />
-                <input
-                  type="text"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && generateNews()}
-                  placeholder="Ketik topik berita terkini..."
-                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-slate-50 focus:bg-white border border-slate-200 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 transition-all outline-none text-base text-slate-700 placeholder-slate-400 font-medium"
-                />
-              </div>
-            ) : (
-              <textarea
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="Tempel catatan liputan, press release, atau poin rapat di sini..."
-                className="w-full p-5 rounded-2xl bg-slate-50 focus:bg-white border border-slate-200 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 transition-all outline-none text-base text-slate-700 placeholder-slate-400 min-h-[160px] resize-y font-medium"
-              />
-            )}
-
-            {/* Opsi Gaya Penulisan */}
-            <div className="pt-1">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 block pl-2">
-                Pilih Gaya Penulisan
-              </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {styleOptions.map((opt) => {
-                  const Icon = opt.icon;
-                  return (
-                    <button
-                      key={opt.id}
-                      onClick={() => setWritingStyle(opt.id)}
-                      className={`flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 ${
-                        writingStyle === opt.id 
-                        ? 'bg-violet-50 border-violet-400 text-violet-700 shadow-sm' 
-                        : 'bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700'
-                      }`}
-                    >
-                      <Icon className={`w-5 h-5 mb-1.5 ${writingStyle === opt.id ? 'text-violet-600' : 'text-slate-400'}`} />
-                      <span className="text-xs font-bold">{opt.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              onClick={generateNews}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white py-4 rounded-2xl font-bold transition-all transform active:scale-[0.98] shadow-xl shadow-violet-200/50 flex items-center justify-center disabled:opacity-70 disabled:active:scale-100 mt-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Membentuk Artikel...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Generate Berita
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Error Alert */}
-        {error && (
-          <div className="p-4 bg-red-50 text-red-600 rounded-[1.5rem] flex items-center border border-red-100 animate-in slide-in-from-top-2">
-            <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
-            <p className="font-semibold text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Results Section */}
-        {result && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-10">
-            
-            {/* Grounding Sources (Horizontal Scroll / Mobile Friendly) */}
-            {result.sources.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider pl-2">
-                  <Globe className="w-3.5 h-3.5 mr-1.5" />
-                  Sumber Validasi AI
-                </h3>
-                {/* Horizontal scroll container hiding scrollbar */}
-                <div className="flex overflow-x-auto gap-3 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                  {result.sources.map((source, idx) => (
-                    <a
-                      key={idx}
-                      href={source.uri}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-sm bg-white border border-slate-200 hover:border-violet-300 hover:text-violet-700 transition-all px-4 py-2.5 rounded-[1rem] text-slate-600 shadow-sm whitespace-nowrap font-medium flex-shrink-0"
-                    >
-                      <LinkIcon className="w-3.5 h-3.5 mr-2" />
-                      {source.title.length > 35 ? source.title.substring(0, 35) + '...' : source.title}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Articles Stack */}
-            <div className="space-y-6">
-              {result.articles.map((article, index) => {
-                const theme = angleThemes[index % angleThemes.length];
-                
-                return (
-                  <div key={index} className="bg-white rounded-[2rem] shadow-lg shadow-slate-200/40 border border-slate-100 overflow-hidden flex flex-col relative group">
-                    
-                    {/* Card Header (Dynamic Colors) */}
-                    <div className={`p-6 border-b ${theme.border} ${theme.bg} flex justify-between items-start gap-4 transition-colors`}>
-                      <div>
-                        <div className={`flex items-center text-xs font-black ${theme.text} uppercase tracking-widest mb-3`}>
-                          <PenTool className="w-4 h-4 mr-2" />
-                          Angle {index + 1}: {article.angle}
-                        </div>
-                        <h2 className="text-xl sm:text-2xl font-bold leading-tight text-slate-800">
-                          {article.title}
-                        </h2>
-                      </div>
-                      <button
-                        onClick={() => handleCopy(article, index)}
-                        className="p-3 text-slate-400 hover:text-violet-600 hover:bg-white/80 rounded-2xl transition-all shadow-sm bg-white/50 border border-white flex-shrink-0 active:scale-95"
-                        title="Salin Berita"
-                      >
-                        {copiedIndex === index ? (
-                          <Check className="w-5 h-5 text-green-500" />
-                        ) : (
-                          <Copy className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Card Body */}
-                    <div className="p-6 sm:p-8 bg-white">
-                      <div className="prose prose-slate max-w-none">
-                        {article.content.split('\n').map((paragraph, i) => (
-                          paragraph.trim() ? <p key={i} className="mb-5 text-slate-600 leading-relaxed text-justify text-base sm:text-lg">{paragraph}</p> : null
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Card Footer */}
-                    <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/50 flex flex-col sm:flex-row gap-3 text-xs text-slate-500">
-                      <div className="flex items-center font-semibold bg-white px-3 py-2 rounded-xl shadow-sm border border-slate-100 flex-1">
-                        <Globe className={`w-4 h-4 mr-2 ${theme.icon}`} />
-                        <span className="truncate">{article.source_name}</span>
-                      </div>
-                      <div className="flex items-center font-semibold bg-white px-3 py-2 rounded-xl shadow-sm border border-slate-100">
-                        <Calendar className={`w-4 h-4 mr-2 ${theme.icon}`} />
-                        {article.source_date}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-          </div>
-        )}
-      </main>
+  <!-- Mobile-style Sticky Header with Vibrant Gradient Banner -->
+  <header class="sticky top-0 z-50 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 shadow-lg shadow-violet-200/50 border-b border-white/10 overflow-hidden">
+    <!-- Subtle dot matrix pattern overlay for texture -->
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+    
+    <div class="max-w-2xl mx-auto px-5 py-4 flex items-center justify-center relative z-10">
+      <div class="absolute left-5 w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner">
+        <i data-lucide="newspaper" class="w-5 h-5 text-white"></i>
+      </div>
+      <div class="text-center">
+        <h1 class="text-xl font-black tracking-tight text-white drop-shadow-md">
+          JURNALIS PRO
+        </h1>
+        <p class="text-[10px] font-bold text-violet-100 uppercase tracking-widest mt-0.5">
+          AI Newsroom
+        </p>
+      </div>
     </div>
-  );
-}
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="max-w-2xl mx-auto px-5 pt-6 space-y-6">
+
+    <!-- Input Card -->
+    <div class="bg-white/80 backdrop-blur-md p-2 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white">
+      
+      <!-- Segmented Control (iOS Style Tabs) -->
+      <div class="flex bg-slate-100/80 p-1.5 rounded-[1.5rem] mb-4 relative" id="tabs-container">
+        <button id="tab-search" onclick="setMode('search')" class="flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm bg-white text-violet-700 shadow-sm">
+          <i data-lucide="search" class="w-4 h-4 mr-2"></i> Topik
+        </button>
+        <button id="tab-coverage" onclick="setMode('coverage')" class="flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm text-slate-500 hover:text-slate-700">
+          <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Liputan
+        </button>
+      </div>
+
+      <div class="p-2 space-y-5">
+        
+        <!-- Input Areas -->
+        <div id="input-search-container" class="relative group">
+          <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-violet-500"></i>
+          <input type="text" id="input-search" onkeydown="if(event.key === 'Enter') generateNews()" placeholder="Ketik topik berita terkini..." class="w-full pl-14 pr-5 py-4 rounded-2xl bg-slate-50 focus:bg-white border border-slate-200 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 transition-all outline-none text-base text-slate-700 placeholder-slate-400 font-medium">
+        </div>
+
+        <div id="input-coverage-container" class="hidden">
+          <textarea id="input-coverage" placeholder="Tempel catatan liputan, press release, atau poin rapat di sini..." class="w-full p-5 rounded-2xl bg-slate-50 focus:bg-white border border-slate-200 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 transition-all outline-none text-base text-slate-700 placeholder-slate-400 min-h-[160px] resize-y font-medium"></textarea>
+        </div>
+
+        <!-- Opsi Gaya Penulisan -->
+        <div class="pt-1">
+          <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 block pl-2">
+            Pilih Gaya Penulisan
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="style-options">
+            <button onclick="setWritingStyle('straight')" id="style-straight" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-violet-50 border-violet-400 text-violet-700 shadow-sm">
+              <i data-lucide="zap" class="w-5 h-5 mb-1.5 style-icon text-violet-600"></i>
+              <span class="text-xs font-bold">Straight News</span>
+            </button>
+            <button onclick="setWritingStyle('feature')" id="style-feature" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+              <i data-lucide="heart" class="w-5 h-5 mb-1.5 style-icon text-slate-400"></i>
+              <span class="text-xs font-bold">Feature</span>
+            </button>
+            <button onclick="setWritingStyle('indepth')" id="style-indepth" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+              <i data-lucide="book-open" class="w-5 h-5 mb-1.5 style-icon text-slate-400"></i>
+              <span class="text-xs font-bold">In-Depth</span>
+            </button>
+            <button onclick="setWritingStyle('kasual')" id="style-kasual" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700">
+              <i data-lucide="coffee" class="w-5 h-5 mb-1.5 style-icon text-slate-400"></i>
+              <span class="text-xs font-bold">Kasual</span>
+            </button>
+          </div>
+        </div>
+
+        <button id="btn-generate" onclick="generateNews()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white py-4 rounded-2xl font-bold transition-all transform active:scale-[0.98] shadow-xl shadow-violet-200/50 flex items-center justify-center disabled:opacity-70 disabled:active:scale-100 mt-2">
+          <i data-lucide="sparkles" id="btn-icon-normal" class="w-5 h-5 mr-2"></i>
+          <i data-lucide="loader-2" id="btn-icon-loading" class="w-5 h-5 mr-2 animate-spin hidden"></i>
+          <span id="btn-text">Generate Berita</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div id="error-container" class="hidden p-4 bg-red-50 text-red-600 rounded-[1.5rem] flex items-center border border-red-100 transition-all duration-300">
+      <i data-lucide="alert-circle" class="w-5 h-5 mr-3 flex-shrink-0"></i>
+      <p id="error-message" class="font-semibold text-sm"></p>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" class="hidden space-y-6 pb-10 transition-all duration-700 opacity-0 translate-y-4">
+      
+      <!-- Grounding Sources -->
+      <div id="sources-container" class="space-y-3 hidden">
+        <h3 class="flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider pl-2">
+          <i data-lucide="globe" class="w-3.5 h-3.5 mr-1.5"></i> Sumber Validasi AI
+        </h3>
+        <div id="sources-list" class="flex overflow-x-auto gap-3 pb-2 hide-scrollbar">
+          <!-- Sources will be injected here -->
+        </div>
+      </div>
+
+      <!-- Articles Stack -->
+      <div id="articles-stack" class="space-y-6">
+        <!-- Articles will be injected here -->
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Inisialisasi Icons
+    lucide.createIcons();
+
+    // State Variables
+    const apiKey = ""; // API key disediakan oleh environment saat runtime
+    let currentMode = 'search';
+    let currentStyle = 'straight';
+    let globalArticles = []; // Menyimpan data artikel untuk fitur Copy
+
+    // Konfigurasi Tema Warna Angle
+    const angleThemes = [
+      { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-100", icon: "text-blue-500" },
+      { bg: "bg-fuchsia-50", text: "text-fuchsia-700", border: "border-fuchsia-100", icon: "text-fuchsia-500" },
+      { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-100", icon: "text-amber-500" },
+    ];
+
+    function setMode(mode) {
+      currentMode = mode;
+      
+      // Update Tab UI
+      const tabSearch = document.getElementById('tab-search');
+      const tabCoverage = document.getElementById('tab-coverage');
+      const inputSearchContainer = document.getElementById('input-search-container');
+      const inputCoverageContainer = document.getElementById('input-coverage-container');
+
+      if (mode === 'search') {
+        tabSearch.className = "flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm bg-white text-violet-700 shadow-sm";
+        tabCoverage.className = "flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm text-slate-500 hover:text-slate-700";
+        inputSearchContainer.classList.remove('hidden');
+        inputCoverageContainer.classList.add('hidden');
+      } else {
+        tabCoverage.className = "flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm bg-white text-violet-700 shadow-sm";
+        tabSearch.className = "flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm text-slate-500 hover:text-slate-700";
+        inputCoverageContainer.classList.remove('hidden');
+        inputSearchContainer.classList.add('hidden');
+      }
+
+      // Reset hasil dan input
+      document.getElementById('input-search').value = '';
+      document.getElementById('input-coverage').value = '';
+      hideResults();
+      hideError();
+    }
+
+    function setWritingStyle(style) {
+      currentStyle = style;
+      
+      const styles = ['straight', 'feature', 'indepth', 'kasual'];
+      
+      styles.forEach(s => {
+        const btn = document.getElementById(`style-${s}`);
+        const icon = btn.querySelector('.style-icon');
+        
+        if (s === style) {
+          btn.className = "style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-violet-50 border-violet-400 text-violet-700 shadow-sm";
+          icon.classList.remove('text-slate-400');
+          icon.classList.add('text-violet-600');
+        } else {
+          btn.className = "style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 border-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-700";
+          icon.classList.remove('text-violet-600');
+          icon.classList.add('text-slate-400');
+        }
+      });
+    }
+
+    function showError(msg) {
+      const errContainer = document.getElementById('error-container');
+      document.getElementById('error-message').innerText = msg;
+      errContainer.classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('error-container').classList.add('hidden');
+    }
+
+    function hideResults() {
+      const resultsSection = document.getElementById('results-section');
+      resultsSection.classList.add('opacity-0', 'translate-y-4');
+      setTimeout(() => {
+        resultsSection.classList.add('hidden');
+        document.getElementById('sources-container').classList.add('hidden');
+        document.getElementById('articles-stack').innerHTML = '';
+        document.getElementById('sources-list').innerHTML = '';
+      }, 500);
+    }
+
+    function setLoading(isLoading) {
+      const btn = document.getElementById('btn-generate');
+      const iconNormal = document.getElementById('btn-icon-normal');
+      const iconLoading = document.getElementById('btn-icon-loading');
+      const text = document.getElementById('btn-text');
+
+      if (isLoading) {
+        btn.disabled = true;
+        iconNormal.classList.add('hidden');
+        iconLoading.classList.remove('hidden');
+        text.innerText = "Membentuk Artikel...";
+      } else {
+        btn.disabled = false;
+        iconNormal.classList.remove('hidden');
+        iconLoading.classList.add('hidden');
+        text.innerText = "Generate Berita";
+      }
+    }
+
+    async function generateNews() {
+      const topic = currentMode === 'search' 
+        ? document.getElementById('input-search').value 
+        : document.getElementById('input-coverage').value;
+
+      if (!topic.trim()) {
+        showError('Silakan masukkan data terlebih dahulu.');
+        return;
+      }
+
+      setLoading(true);
+      hideError();
+      hideResults();
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+      const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      
+      let styleInstruction = "";
+      switch(currentStyle) {
+        case 'straight': 
+          styleInstruction = "GAYA PENULISAN: Straight News (Sangat lugas, formal, to-the-point, menggunakan struktur piramida terbalik, utamakan 5W1H di paragraf awal)."; 
+          break;
+        case 'feature': 
+          styleInstruction = "GAYA PENULISAN: Feature (Bercerita / storytelling, sangat deskriptif, menyentuh emosi, menonjolkan sisi human interest atau suasana kejadian)."; 
+          break;
+        case 'indepth': 
+          styleInstruction = "GAYA PENULISAN: In-Depth / Explanatory (Analisis mendalam, formal, kaya akan konteks dan latar belakang, membedah secara tuntas mengapa dan bagaimana peristiwa itu terjadi)."; 
+          break;
+        case 'kasual': 
+          styleInstruction = "GAYA PENULISAN: Kasual & Populer (Bahasa luwes, santai, kekinian, interaktif, sangat enak dibaca mengalir, cocok untuk pembaca portal berita online modern / anak muda)."; 
+          break;
+        default:
+          styleInstruction = "GAYA PENULISAN: Straight News jurnalistik profesional.";
+      }
+
+      let promptText = "";
+      let sysInstruct = "";
+
+      if (currentMode === 'search') {
+        promptText = `Tanggal Hari Ini: ${currentDate}\nTopik/Referensi: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan alat pencarian (Google Search) untuk mencari BERITA TERBARU terkait topik tersebut.\n2. JANGAN menggunakan data lama. Semua berita harus relevan dengan kejadian di sekitar tanggal ${currentDate}.\n\nBerdasarkan hasil pencarian paling mutakhir tersebut, buat 3 artikel berita mendalam. Syarat:\n1. Sepenuhnya berdasarkan fakta terbaru dari hasil pencarian hari ini.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda.\n4. Setiap artikel WAJIB terdiri dari minimal 5 paragraf yang lengkap dan komprehensif. Pisahkan antar paragraf dengan baris baru (Enter).\n5. Wajib ekstrak dan cantumkan nama sumber media utama serta tanggal terbit berita referensi tersebut ke dalam kolom source_name dan source_date.`;
+        sysInstruct = `Kamu adalah jurnalis investigasi kelas dunia. Tanggal hari ini adalah ${currentDate}. Kamu dilarang keras mengarang berita atau memakai data lampau. Kamu WAJIB menggunakan alat pencarian untuk mendapatkan informasi paling mutakhir di internet.`;
+      } else {
+        promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan/Resume Kegiatan Mentah:\n${topic}\n\nINSTRUKSI: Kembangkan catatan singkat atau resume liputan di atas menjadi 3 artikel berita utuh yang mendalam dan siap terbit. Syarat:\n1. Kembangkan fakta-fakta dari catatan menjadi alur berita yang mengalir dengan baik dan natural.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda (misal: angle kutipan/tokoh utama, angle dampak/suasana acara, angle latar belakang kegiatan, dll).\n4. Setiap artikel MUTLAK WAJIB terdiri dari MINIMAL 5 PARAGRAF.\n5. FORMATTING PENTING: Pisahkan setiap paragraf dengan jelas menggunakan baris baru ganda (Enter dua kali / '\\n\\n'). Jangan menggabungkan seluruh teks menjadi satu paragraf panjang.\n6. Untuk kolom source_name isi dengan "Catatan Liputan / Rilis Pers" dan source_date isi dengan tanggal hari ini (${currentDate}) atau sesuai yang ada di catatan.`;
+        sysInstruct = `Kamu adalah editor jurnalis senior yang sangat ahli dalam mengolah catatan liputan mentah menjadi berita artikel utuh, profesional, dan enak dibaca. Tanggal hari ini adalah ${currentDate}. Kamu selalu menulis dengan struktur paragraf yang rapi dan terpisah.`;
+      }
+
+      const payload = {
+        contents: [{ parts: [{ text: promptText }] }],
+        systemInstruction: { parts: [{ text: sysInstruct }] },
+        tools: [{ "google_search": {} }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              articles: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    title: { type: "STRING" },
+                    angle: { type: "STRING" },
+                    content: { type: "STRING" },
+                    source_name: { type: "STRING" },
+                    source_date: { type: "STRING" }
+                  },
+                  required: ["title", "angle", "content", "source_name", "source_date"]
+                }
+              }
+            },
+            required: ["articles"]
+          }
+        }
+      };
+
+      const delays = [1000, 2000, 4000, 8000, 16000];
+      
+      for (let i = 0; i <= 5; i++) {
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) throw new Error(`Gagal menghubungi server (Status: ${response.status})`);
+
+          const data = await response.json();
+          const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          
+          if (!textResponse) throw new Error("Format respons tidak sesuai dari AI.");
+          
+          const parsedData = JSON.parse(textResponse);
+
+          const rawSources = data.candidates?.[0]?.groundingMetadata?.groundingAttributions?.map(a => ({
+            uri: a.web?.uri,
+            title: a.web?.title
+          })).filter(source => source.uri && source.title) || [];
+
+          // Unique sources
+          const uniqueSources = Array.from(new Map(rawSources.map(item => [item.uri, item])).values());
+
+          renderResults(parsedData.articles, uniqueSources);
+          break; // Success
+
+        } catch (err) {
+          if (i === 5) {
+            showError(err.message || "Terjadi kesalahan saat memproses data. Silakan coba lagi.");
+          } else {
+            await new Promise(r => setTimeout(r, delays[i]));
+          }
+        }
+      }
+
+      setLoading(false);
+    }
+
+    function renderResults(articles, sources) {
+      globalArticles = articles; // Simpan untuk fungsi copy
+
+      const resultsSection = document.getElementById('results-section');
+      const sourcesContainer = document.getElementById('sources-container');
+      const sourcesList = document.getElementById('sources-list');
+      const articlesStack = document.getElementById('articles-stack');
+
+      // Render Sources
+      if (sources.length > 0) {
+        sourcesList.innerHTML = sources.map((source) => `
+          <a href="${source.uri}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-sm bg-white border border-slate-200 hover:border-violet-300 hover:text-violet-700 transition-all px-4 py-2.5 rounded-[1rem] text-slate-600 shadow-sm whitespace-nowrap font-medium flex-shrink-0">
+            <i data-lucide="link" class="w-3.5 h-3.5 mr-2"></i>
+            ${source.title.length > 35 ? source.title.substring(0, 35) + '...' : source.title}
+          </a>
+        `).join('');
+        sourcesContainer.classList.remove('hidden');
+      } else {
+        sourcesContainer.classList.add('hidden');
+      }
+
+      // Render Articles
+      articlesStack.innerHTML = articles.map((article, index) => {
+        const theme = angleThemes[index % angleThemes.length];
+        
+        const paragraphsHTML = article.content.split('\n')
+          .filter(p => p.trim() !== '')
+          .map(p => `<p class="mb-5 text-slate-600 leading-relaxed text-justify text-base sm:text-lg">${p}</p>`)
+          .join('');
+
+        return `
+          <div class="bg-white rounded-[2rem] shadow-lg shadow-slate-200/40 border border-slate-100 overflow-hidden flex flex-col relative group">
+            <div class="p-6 border-b ${theme.border} ${theme.bg} flex justify-between items-start gap-4 transition-colors">
+              <div>
+                <div class="flex items-center text-xs font-black ${theme.text} uppercase tracking-widest mb-3">
+                  <i data-lucide="pen-tool" class="w-4 h-4 mr-2"></i> Angle ${index + 1}: ${article.angle}
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold leading-tight text-slate-800">${article.title}</h2>
+              </div>
+              <button onclick="handleCopy(${index}, this)" class="p-3 text-slate-400 hover:text-violet-600 hover:bg-white/80 rounded-2xl transition-all shadow-sm bg-white/50 border border-white flex-shrink-0 active:scale-95" title="Salin Berita">
+                <div class="icon-copy"><i data-lucide="copy" class="w-5 h-5"></i></div>
+                <div class="icon-check hidden"><i data-lucide="check" class="w-5 h-5 text-green-500"></i></div>
+              </button>
+            </div>
+            <div class="p-6 sm:p-8 bg-white">
+              <div class="prose prose-slate max-w-none">
+                ${paragraphsHTML}
+              </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-50 bg-slate-50/50 flex flex-col sm:flex-row gap-3 text-xs text-slate-500">
+              <div class="flex items-center font-semibold bg-white px-3 py-2 rounded-xl shadow-sm border border-slate-100 flex-1">
+                <i data-lucide="globe" class="w-4 h-4 mr-2 ${theme.icon}"></i> <span class="truncate">${article.source_name}</span>
+              </div>
+              <div class="flex items-center font-semibold bg-white px-3 py-2 rounded-xl shadow-sm border border-slate-100">
+                <i data-lucide="calendar" class="w-4 h-4 mr-2 ${theme.icon}"></i> ${article.source_date}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render ulang ikon Lucide untuk elemen DOM yang baru ditambahkan
+      lucide.createIcons();
+
+      // Animasi kemunculan
+      resultsSection.classList.remove('hidden');
+      // Timeout kecil agar CSS transition ter-trigger
+      setTimeout(() => {
+        resultsSection.classList.remove('opacity-0', 'translate-y-4');
+      }, 50);
+    }
+
+    function handleCopy(index, btnElement) {
+      const article = globalArticles[index];
+      const textToCopy = `${article.title}\n\n${article.content}`;
+      
+      const textArea = document.createElement("textarea");
+      textArea.value = textToCopy;
+      document.body.appendChild(textArea);
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        
+        // Toggle Icons
+        const iconCopy = btnElement.querySelector('.icon-copy');
+        const iconCheck = btnElement.querySelector('.icon-check');
+        
+        iconCopy.classList.add('hidden');
+        iconCheck.classList.remove('hidden');
+        
+        setTimeout(() => {
+          iconCopy.classList.remove('hidden');
+          iconCheck.classList.add('hidden');
+        }, 2000);
+        
+      } catch (err) {
+        console.error('Gagal menyalin teks', err);
+      }
+      document.body.removeChild(textArea);
+    }
+  </script>
+</body>
+</html>
