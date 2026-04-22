@@ -339,7 +339,8 @@
       hideError();
       hideResults();
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`;
+      // MENGUBAH URL MODEL KE VERSI PUBLIK YANG STABIL
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeApiKey}`;
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       
       let styleInstruction = "";
@@ -410,11 +411,17 @@
             body: JSON.stringify(payload)
           });
 
+          // PERBAIKAN PENANGANAN ERROR UNTUK MENAMPILKAN PESAN DARI GOOGLE
           if (!response.ok) {
-            if(response.status === 400 || response.status === 403) {
-               throw new Error(`<b>API Key Tidak Valid (Status: ${response.status})</b><br>Tampaknya API Key yang Anda simpan di Pengaturan tidak valid atau sudah kadaluarsa. Silakan periksa kembali melalui ikon Kunci di atas.`);
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData?.error?.message || 'Tidak diketahui';
+            
+            console.error("Detail Error API:", errorData);
+
+            if(response.status === 400 || response.status === 403 || response.status === 404) {
+               throw new Error(`<b>Akses Ditolak (Status: ${response.status})</b><br>Pesan Google: <i>${errorMessage}</i><br><br>Saran: Pastikan API Key valid, tidak ada spasi terselip saat Anda menempelkannya, atau coba buat API Key baru.`);
             }
-            throw new Error(`Gagal menghubungi server (Status: ${response.status})`);
+            throw new Error(`Gagal menghubungi server (Status: ${response.status}). Pesan: ${errorMessage}`);
           }
 
           const data = await response.json();
