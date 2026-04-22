@@ -361,44 +361,37 @@
           styleInstruction = "GAYA PENULISAN: Straight News jurnalistik profesional.";
       }
 
+      // INSTRUKSI PENTING: Minta format JSON secara eksplisit via teks, jangan gunakan fitur MimeType
+      const jsonFormatInstruction = `\n\nOUTPUT FORMAT WAJIB:
+Anda HANYA boleh membalas dengan format JSON valid murni tanpa teks pengantar atau penutup apapun. Struktur JSON yang wajib dipatuhi:
+{
+  "articles": [
+    {
+      "title": "Judul Artikel",
+      "angle": "Sudut Pandang",
+      "content": "Isi berita minimal 5 paragraf. Pisahkan paragraf dengan baris baru ganda",
+      "source_name": "Nama Media",
+      "source_date": "Tanggal Berita"
+    }
+  ]
+}`;
+
       let promptText = "";
       let sysInstruct = "";
 
       if (currentMode === 'search') {
-        promptText = `Tanggal Hari Ini: ${currentDate}\nTopik/Referensi: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan alat pencarian (Google Search) untuk mencari BERITA TERBARU terkait topik tersebut.\n2. JANGAN menggunakan data lama. Semua berita harus relevan dengan kejadian di sekitar tanggal ${currentDate}.\n\nBerdasarkan hasil pencarian paling mutakhir tersebut, buat 3 artikel berita mendalam. Syarat:\n1. Sepenuhnya berdasarkan fakta terbaru dari hasil pencarian hari ini.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda.\n4. Setiap artikel WAJIB terdiri dari minimal 5 paragraf yang lengkap dan komprehensif. Pisahkan antar paragraf dengan baris baru (Enter).\n5. Wajib ekstrak dan cantumkan nama sumber media utama serta tanggal terbit berita referensi tersebut ke dalam kolom source_name dan source_date.`;
+        promptText = `Tanggal Hari Ini: ${currentDate}\nTopik/Referensi: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan alat pencarian (Google Search) untuk mencari BERITA TERBARU terkait topik tersebut.\n2. JANGAN menggunakan data lama. Semua berita harus relevan dengan kejadian di sekitar tanggal ${currentDate}.\n\nBerdasarkan hasil pencarian paling mutakhir tersebut, buat 3 artikel berita mendalam. Syarat:\n1. Sepenuhnya berdasarkan fakta terbaru dari hasil pencarian hari ini.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda.\n4. Setiap artikel WAJIB terdiri dari minimal 5 paragraf yang lengkap dan komprehensif. Pisahkan antar paragraf dengan baris baru (Enter).\n5. Wajib ekstrak dan cantumkan nama sumber media utama serta tanggal terbit berita referensi tersebut ke dalam kolom source_name dan source_date.${jsonFormatInstruction}`;
         sysInstruct = `Kamu adalah jurnalis investigasi kelas dunia. Tanggal hari ini adalah ${currentDate}. Kamu dilarang keras mengarang berita atau memakai data lampau. Kamu WAJIB menggunakan alat pencarian untuk mendapatkan informasi paling mutakhir di internet.`;
       } else {
-        promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan/Resume Kegiatan Mentah:\n${topic}\n\nINSTRUKSI: Kembangkan catatan singkat atau resume liputan di atas menjadi 3 artikel berita utuh yang mendalam dan siap terbit. Syarat:\n1. Kembangkan fakta-fakta dari catatan menjadi alur berita yang mengalir dengan baik dan natural.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda (misal: angle kutipan/tokoh utama, angle dampak/suasana acara, angle latar belakang kegiatan, dll).\n4. Setiap artikel MUTLAK WAJIB terdiri dari MINIMAL 5 PARAGRAF.\n5. FORMATTING PENTING: Pisahkan setiap paragraf dengan jelas menggunakan baris baru ganda (Enter dua kali / '\\n\\n'). Jangan menggabungkan seluruh teks menjadi satu paragraf panjang.\n6. Untuk kolom source_name isi dengan "Catatan Liputan / Rilis Pers" dan source_date isi dengan tanggal hari ini (${currentDate}) atau sesuai yang ada di catatan.`;
+        promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan/Resume Kegiatan Mentah:\n${topic}\n\nINSTRUKSI: Kembangkan catatan singkat atau resume liputan di atas menjadi 3 artikel berita utuh yang mendalam dan siap terbit. Syarat:\n1. Kembangkan fakta-fakta dari catatan menjadi alur berita yang mengalir dengan baik dan natural.\n2. ${styleInstruction}\n3. Setiap artikel WAJIB memiliki "angle" (sudut pandang) yang berbeda (misal: angle kutipan/tokoh utama, angle dampak/suasana acara, angle latar belakang kegiatan, dll).\n4. Setiap artikel MUTLAK WAJIB terdiri dari MINIMAL 5 PARAGRAF.\n5. FORMATTING PENTING: Pisahkan setiap paragraf dengan jelas menggunakan baris baru ganda (Enter dua kali / '\\n\\n'). Jangan menggabungkan seluruh teks menjadi satu paragraf panjang.\n6. Untuk kolom source_name isi dengan "Catatan Liputan / Rilis Pers" dan source_date isi dengan tanggal hari ini (${currentDate}) atau sesuai yang ada di catatan.${jsonFormatInstruction}`;
         sysInstruct = `Kamu adalah editor jurnalis senior yang sangat ahli dalam mengolah catatan liputan mentah menjadi berita artikel utuh, profesional, dan enak dibaca. Tanggal hari ini adalah ${currentDate}. Kamu selalu menulis dengan struktur paragraf yang rapi dan terpisah.`;
       }
 
+      // HAPUS generationConfig (menghindari error responseMimeType dan schema)
       const payload = {
         contents: [{ parts: [{ text: promptText }] }],
         systemInstruction: { parts: [{ text: sysInstruct }] },
-        tools: [{ "google_search": {} }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              articles: {
-                type: "ARRAY",
-                items: {
-                  type: "OBJECT",
-                  properties: {
-                    title: { type: "STRING" },
-                    angle: { type: "STRING" },
-                    content: { type: "STRING" },
-                    source_name: { type: "STRING" },
-                    source_date: { type: "STRING" }
-                  },
-                  required: ["title", "angle", "content", "source_name", "source_date"]
-                }
-              }
-            },
-            required: ["articles"]
-          }
-        }
+        tools: [{ "google_search": {} }]
       };
 
       const delays = [1000, 2000, 4000, 8000, 16000];
@@ -411,7 +404,6 @@
             body: JSON.stringify(payload)
           });
 
-          // PERBAIKAN PENANGANAN ERROR UNTUK MENAMPILKAN PESAN DARI GOOGLE
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             const errorMessage = errorData?.error?.message || 'Tidak diketahui';
@@ -425,11 +417,20 @@
           }
 
           const data = await response.json();
-          const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          let textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
           
           if (!textResponse) throw new Error("Format respons tidak sesuai dari AI.");
           
-          const parsedData = JSON.parse(textResponse);
+          // Bersihkan teks dari format blok Markdown jika AI masih membungkusnya dengan ```json ... ```
+          textResponse = textResponse.replace(/^```(json)?|```$/gi, '').trim();
+
+          let parsedData;
+          try {
+            parsedData = JSON.parse(textResponse);
+          } catch(e) {
+             console.error("Gagal melakukan parse pada respon JSON:", textResponse);
+             throw new Error("AI tidak mengembalikan data dalam format yang benar. Silakan coba tekan tombol Generate lagi.");
+          }
 
           const rawSources = data.candidates?.[0]?.groundingMetadata?.groundingAttributions?.map(a => ({
             uri: a.web?.uri,
@@ -443,7 +444,7 @@
           break; // Success
 
         } catch (err) {
-          if (i === 5 || err.message.includes("API Key Tidak Valid")) {
+          if (i === 5 || err.message.includes("API Key Tidak Valid") || err.message.includes("Akses Ditolak")) {
             showError(err.message || "Terjadi kesalahan saat memproses data. Silakan coba lagi.");
             break;
           } else {
