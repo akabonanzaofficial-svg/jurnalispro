@@ -49,6 +49,7 @@
       <div class="absolute left-5 w-10 h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner">
         <i data-lucide="newspaper" class="w-5 h-5 text-white"></i>
       </div>
+      
       <div class="text-center">
         <h1 class="text-xl font-black tracking-tight text-white drop-shadow-md">
           JURNALIS PRO
@@ -57,6 +58,11 @@
           AI Newsroom
         </p>
       </div>
+
+      <!-- Tombol Pengaturan API Key (untuk GitHub Pages) -->
+      <button onclick="toggleApiModal()" class="absolute right-5 w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner transition-colors" title="Pengaturan API Key">
+        <i data-lucide="key" class="w-4 h-4 text-white"></i>
+      </button>
     </div>
   </header>
 
@@ -122,9 +128,9 @@
     </div>
 
     <!-- Error Alert -->
-    <div id="error-container" class="hidden p-4 bg-red-50 text-red-600 rounded-[1.5rem] flex items-center border border-red-100 transition-all duration-300">
-      <i data-lucide="alert-circle" class="w-5 h-5 mr-3 flex-shrink-0"></i>
-      <p id="error-message" class="font-semibold text-sm"></p>
+    <div id="error-container" class="hidden p-4 bg-red-50 text-red-600 rounded-[1.5rem] flex items-start border border-red-100 transition-all duration-300">
+      <i data-lucide="alert-circle" class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5"></i>
+      <p id="error-message" class="font-semibold text-sm leading-relaxed"></p>
     </div>
 
     <!-- Results Section -->
@@ -148,15 +154,38 @@
     </div>
   </main>
 
+  <!-- Modal API Key Configuration -->
+  <div id="api-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-[2rem] shadow-2xl p-6 w-full max-w-md transform scale-95 transition-transform duration-300" id="api-modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-800 flex items-center">
+          <i data-lucide="key" class="w-5 h-5 mr-2 text-violet-600"></i>
+          Pengaturan API Key
+        </h3>
+        <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <p class="text-sm text-slate-500 mb-5 leading-relaxed">
+        Untuk menjalankan aplikasi ini di GitHub Pages, Anda memerlukan Google Gemini API Key milik Anda sendiri. Kunci akan disimpan secara aman di <b>penyimpanan lokal browser Anda</b>.
+      </p>
+      <input type="password" id="input-api-key" placeholder="Paste API Key Gemini Anda (AIzaSy...)" class="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 transition-all outline-none text-slate-700 font-mono text-sm mb-5">
+      <div class="flex gap-3">
+        <button onclick="toggleApiModal()" class="flex-1 py-3.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Batal</button>
+        <button onclick="saveApiKey()" class="flex-1 py-3.5 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors">Simpan Key</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Inisialisasi Icons
     lucide.createIcons();
 
     // State Variables
-    const apiKey = ""; // API key disediakan oleh environment saat runtime
+    const apiKey = ""; // Dibiarkan kosong: API key disediakan oleh environment Canvas saat di sini.
     let currentMode = 'search';
     let currentStyle = 'straight';
-    let globalArticles = []; // Menyimpan data artikel untuk fitur Copy
+    let globalArticles = []; 
 
     // Konfigurasi Tema Warna Angle
     const angleThemes = [
@@ -165,10 +194,46 @@
       { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-100", icon: "text-amber-500" },
     ];
 
+    // --- Modal API Key Logic ---
+    function toggleApiModal() {
+      const modal = document.getElementById('api-modal');
+      const content = document.getElementById('api-modal-content');
+      
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        document.getElementById('input-api-key').value = localStorage.getItem('gemini_api_key') || '';
+        
+        // Animasi masuk
+        setTimeout(() => {
+          modal.classList.remove('opacity-0');
+          content.classList.remove('scale-95');
+        }, 10);
+      } else {
+        // Animasi keluar
+        modal.classList.add('opacity-0');
+        content.classList.add('scale-95');
+        
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 300);
+      }
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('input-api-key').value.trim();
+      if (key) {
+        localStorage.setItem('gemini_api_key', key);
+      } else {
+        localStorage.removeItem('gemini_api_key');
+      }
+      toggleApiModal();
+      hideError();
+    }
+    // ---------------------------
+
     function setMode(mode) {
       currentMode = mode;
       
-      // Update Tab UI
       const tabSearch = document.getElementById('tab-search');
       const tabCoverage = document.getElementById('tab-coverage');
       const inputSearchContainer = document.getElementById('input-search-container');
@@ -186,7 +251,6 @@
         inputSearchContainer.classList.add('hidden');
       }
 
-      // Reset hasil dan input
       document.getElementById('input-search').value = '';
       document.getElementById('input-coverage').value = '';
       hideResults();
@@ -195,7 +259,6 @@
 
     function setWritingStyle(style) {
       currentStyle = style;
-      
       const styles = ['straight', 'feature', 'indepth', 'kasual'];
       
       styles.forEach(s => {
@@ -216,7 +279,7 @@
 
     function showError(msg) {
       const errContainer = document.getElementById('error-container');
-      document.getElementById('error-message').innerText = msg;
+      document.getElementById('error-message').innerHTML = msg; // Support HTML (bolding dll)
       errContainer.classList.remove('hidden');
     }
 
@@ -260,7 +323,15 @@
         : document.getElementById('input-coverage').value;
 
       if (!topic.trim()) {
-        showError('Silakan masukkan data terlebih dahulu.');
+        showError('Silakan masukkan topik berita atau catatan liputan terlebih dahulu.');
+        return;
+      }
+
+      // Deteksi API Key (Prioritas: Bawaan Canvas -> LocalStorage GitHub Pages)
+      const activeApiKey = apiKey || localStorage.getItem('gemini_api_key');
+      
+      if (!activeApiKey) {
+        showError('<b>API Key tidak ditemukan!</b><br>Jika Anda membuka ini di GitHub Pages, Anda wajib klik ikon <b>Kunci</b> di pojok kanan atas untuk memasukkan Gemini API Key Anda.');
         return;
       }
 
@@ -268,7 +339,7 @@
       hideError();
       hideResults();
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeApiKey}`;
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       
       let styleInstruction = "";
@@ -339,7 +410,12 @@
             body: JSON.stringify(payload)
           });
 
-          if (!response.ok) throw new Error(`Gagal menghubungi server (Status: ${response.status})`);
+          if (!response.ok) {
+            if(response.status === 400 || response.status === 403) {
+               throw new Error(`<b>API Key Tidak Valid (Status: ${response.status})</b><br>Tampaknya API Key yang Anda simpan di Pengaturan tidak valid atau sudah kadaluarsa. Silakan periksa kembali melalui ikon Kunci di atas.`);
+            }
+            throw new Error(`Gagal menghubungi server (Status: ${response.status})`);
+          }
 
           const data = await response.json();
           const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -360,8 +436,9 @@
           break; // Success
 
         } catch (err) {
-          if (i === 5) {
+          if (i === 5 || err.message.includes("API Key Tidak Valid")) {
             showError(err.message || "Terjadi kesalahan saat memproses data. Silakan coba lagi.");
+            break;
           } else {
             await new Promise(r => setTimeout(r, delays[i]));
           }
@@ -432,12 +509,11 @@
         `;
       }).join('');
 
-      // Render ulang ikon Lucide untuk elemen DOM yang baru ditambahkan
+      // Render ulang ikon Lucide
       lucide.createIcons();
 
       // Animasi kemunculan
       resultsSection.classList.remove('hidden');
-      // Timeout kecil agar CSS transition ter-trigger
       setTimeout(() => {
         resultsSection.classList.remove('opacity-0', 'translate-y-4');
       }, 50);
@@ -455,7 +531,6 @@
       try {
         document.execCommand('copy');
         
-        // Toggle Icons
         const iconCopy = btnElement.querySelector('.icon-copy');
         const iconCheck = btnElement.querySelector('.icon-check');
         
