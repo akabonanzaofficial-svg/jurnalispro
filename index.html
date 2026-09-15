@@ -298,7 +298,10 @@
     let currentRequestId = 0;
 
     const MAX_HISTORY = 20;
-    const API_KEY_REGEX = /^AIza[0-9A-Za-z\-_]{35}$/;
+    // Kompatibel dengan format lama AIzaSy... dan format baru AQ...
+// Format lama: AIzaSy + 33 karakter = total 39 karakter
+// Format baru: AQ. + minimal 20 karakter (biasanya ~53 karakter)
+const API_KEY_REGEX = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_-]{20,})$/;
 
     const angleThemes = [
       { bg: "bg-blue-50 dark:bg-blue-900/20", text: "text-blue-700 dark:text-blue-300", border: "border-blue-100 dark:border-blue-900/50", icon: "text-blue-500" },
