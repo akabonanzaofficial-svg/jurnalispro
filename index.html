@@ -364,11 +364,11 @@
         }
       },
       {
-        id: 'groq',
-        name: 'Groq',
-        subtitle: 'Qwen3-32B',
-        url: 'https://api.groq.com/openai/v1/chat/completions',
-        model: 'qwen/qwen3-32b',
+  id: 'groq',
+  name: 'Groq',
+  subtitle: 'GPT-OSS-120B',
+  url: 'https://api.groq.com/openai/v1/chat/completions',
+  model: 'openai/gpt-oss-120b',
         format: 'openai',
         getKey: () => EMBEDDED_KEYS.groq,
         isConfigured: () => EMBEDDED_KEYS.groq && !EMBEDDED_KEYS.groq.includes('xxxx')
