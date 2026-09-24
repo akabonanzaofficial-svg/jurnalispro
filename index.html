@@ -13,7 +13,6 @@
       theme: {
         extend: {
           animation: {
-            'spin-slow': 'spin 3s linear infinite',
             'slide-up': 'slideUp 0.4s ease-out',
           },
           keyframes: {
@@ -83,7 +82,6 @@
     </div>
   </header>
 
-  <!-- Banner Peringatan API Key -->
   <div id="api-warning-banner" class="hidden bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-900/50">
     <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
       <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0"></i>
@@ -337,13 +335,19 @@
     const API_KEY_STORAGE = 'jurnalis_gemini_api_key';
     const API_KEY_REGEX = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/;
 
-    const FALLBACK_MODELS = [
+    // Model prioritas — sudah dikonfirmasi tersedia untuk Key format AQ. dan AIza
+    const PRIORITY_MODELS = [
+      'gemini-3.6-flash',
+      'gemini-3.5-flash',
+      'gemini-3.5-flash-lite',
       'gemini-2.5-flash',
-      'gemini-2.0-flash',
-      'gemini-1.5-flash',
-      'gemini-2.5-pro',
-      'gemini-1.5-pro'
+      'gemini-2.5-flash-lite',
+      'gemini-flash-latest',
+      'gemini-flash-lite-latest'
     ];
+
+    // Filter model yang tidak cocok untuk text generation
+    const EXCLUDED_KEYWORDS = ['-tts', '-image', '-audio', '-embedding', '-robotics', 'lyria-', 'veo-', 'antigravity', 'deep-research', 'computer-use', 'transcribe', 'nano-banana', 'gemma-'];
 
     const angleThemes = [
       { bg: "bg-blue-50 dark:bg-blue-900/20", text: "text-blue-700 dark:text-blue-300", border: "border-blue-100 dark:border-blue-900/50", icon: "text-blue-500" },
@@ -529,12 +533,15 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       showToast('API Key dihapus', 'info');
     }
 
+    // ============================================================
+    // TEST API KEY (dengan header x-goog-api-key)
+    // ============================================================
     async function testApiKeyInModal() {
       const inputKey = document.getElementById('input-api-key').value.trim() || localStorage.getItem(API_KEY_STORAGE);
       const resContainer = document.getElementById('test-key-result');
       const btn = document.getElementById('btn-test-key');
       const btnText = document.getElementById('btn-test-text');
-      
+
       if (!inputKey) {
         resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-900/50';
         resContainer.textContent = 'Masukkan API Key terlebih dahulu.';
@@ -549,32 +556,48 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       resContainer.classList.remove('hidden');
 
       try {
-        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(inputKey)}`);
+        // Test 1: List models dengan header
+        const listRes = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+          method: 'GET',
+          headers: { 'x-goog-api-key': inputKey }
+        });
+        
         if (listRes.ok) {
           const data = await listRes.json();
-          const count = data.models?.length || 0;
-          resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50';
-          resContainer.textContent = `✓ API Key valid! ${count} model tersedia.`;
-          btn.disabled = false;
-          btnText.textContent = 'Test Koneksi';
-          return;
-        }
-
-        // Fallback: coba generate dengan model umum
-        const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
-        for (const model of modelsToTry) {
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(inputKey)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: 'Halo' }] }] })
-          });
-          if (res.ok) {
+          const models = data.models || [];
+          const availableModels = models
+            .filter(m => m.supportedGenerationMethods?.includes('generateContent'))
+            .filter(m => !EXCLUDED_KEYWORDS.some(kw => m.name.includes(kw)))
+            .map(m => m.name.replace(/^models\//, ''));
+          
+          if (availableModels.length > 0) {
             resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50';
-            resContainer.textContent = `✓ API Key valid dan siap digunakan!`;
+            resContainer.innerHTML = `✓ <b>API Key valid!</b><br>${availableModels.length} model tersedia untuk teks.<br><span class="text-[10px] opacity-75">Contoh: ${availableModels.slice(0, 3).join(', ')}</span>`;
             btn.disabled = false;
             btnText.textContent = 'Test Koneksi';
             return;
           }
+        }
+
+        // Test 2: Coba generate dengan model prioritas
+        for (const model of PRIORITY_MODELS.slice(0, 3)) {
+          try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': inputKey
+              },
+              body: JSON.stringify({ contents: [{ parts: [{ text: 'Halo' }] }] })
+            });
+            if (res.ok) {
+              resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50';
+              resContainer.innerHTML = `✓ <b>API Key valid!</b><br>Berhasil generate dengan model <code>${model}</code>.`;
+              btn.disabled = false;
+              btnText.textContent = 'Test Koneksi';
+              return;
+            }
+          } catch (e) {}
         }
 
         resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-900/50';
@@ -648,7 +671,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       document.getElementById(currentMode === 'search' ? 'input-search' : 'input-coverage').value = item.topic;
       globalArticles = item.articles;
       globalSources = item.sources || [];
-      renderResults(item.articles, item.sources || []);
+      renderResults(item.articles, item.sources || [], item.model || '');
       toggleHistoryModal();
       showToast('Riwayat dimuat', 'success');
     }
@@ -751,24 +774,33 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     // ============================================================
-    // FETCH AVAILABLE MODELS (auto-discovery)
+    // FETCH MODELS dengan header x-goog-api-key
     // ============================================================
     async function fetchAvailableModels(key) {
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+          method: 'GET',
+          headers: { 'x-goog-api-key': key }
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.models && Array.isArray(data.models)) {
             const supported = data.models
               .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
-              .map(m => m.name.replace(/^models\//, ''));
-            if (supported.length > 0) return supported;
+              .map(m => m.name.replace(/^models\//, ''))
+              .filter(name => !EXCLUDED_KEYWORDS.some(kw => name.includes(kw)));
+            if (supported.length > 0) {
+              // Urutkan: prioritas dulu, lalu sisanya
+              const priority = PRIORITY_MODELS.filter(m => supported.includes(m));
+              const others = supported.filter(m => !PRIORITY_MODELS.includes(m));
+              return [...priority, ...others];
+            }
           }
         }
       } catch (e) {
-        console.warn("Gagal mengambil daftar model:", e);
+        console.warn("Auto-discovery gagal:", e);
       }
-      return FALLBACK_MODELS;
+      return PRIORITY_MODELS;
     }
 
     // ============================================================
@@ -833,7 +865,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     // ============================================================
-    // GENERATE NEWS
+    // GENERATE NEWS — dengan x-goog-api-key header
     // ============================================================
     async function generateNews() {
       if (isGenerating) return;
@@ -893,22 +925,24 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
         promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan Mentah:\n${topic}\n\nKembangkan catatan di atas menjadi ${articleCount} artikel berita utuh dalam Bahasa Indonesia.\n${styleInstruction}\n${lengthInstruction}\n${angleInstruction}\n${modeInstruction}\n${extraText}`;
       }
 
-      const payloadsToTry = [
-        {
+      // Payload variants (fallback tools format)
+      const payloadsToTry = [];
+      if (currentMode === 'search') {
+        payloadsToTry.push({
           contents: [{ parts: [{ text: promptText }] }],
           systemInstruction: { parts: [{ text: JOURNALISM_RULES }] },
-          tools: currentMode === 'search' ? [{ "googleSearch": {} }] : undefined
-        },
-        {
-          contents: [{ parts: [{ text: promptText }] }],
-          systemInstruction: { parts: [{ text: JOURNALISM_RULES }] },
-          tools: currentMode === 'search' ? [{ "google_search": {} }] : undefined
-        },
-        {
+          tools: [{ "google_search": {} }]
+        });
+        payloadsToTry.push({
           contents: [{ parts: [{ text: promptText }] }],
           systemInstruction: { parts: [{ text: JOURNALISM_RULES }] }
-        }
-      ];
+        });
+      } else {
+        payloadsToTry.push({
+          contents: [{ parts: [{ text: promptText }] }],
+          systemInstruction: { parts: [{ text: JOURNALISM_RULES }] }
+        });
+      }
 
       let articlesData = null;
       let sourcesData = [];
@@ -916,45 +950,43 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       let successModel = '';
 
       const availableModels = await fetchAvailableModels(activeApiKey);
-      const preferredOrder = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'];
-      const sortedModels = Array.from(new Set([
-        ...preferredOrder.filter(m => availableModels.includes(m)),
-        ...availableModels,
-        ...FALLBACK_MODELS
-      ]));
+      console.log('Model tersedia:', availableModels.slice(0, 5));
 
-      for (const modelName of sortedModels) {
+      for (const modelName of availableModels) {
         if (articlesData) break;
         if (requestId !== currentRequestId) return;
 
         for (const payload of payloadsToTry) {
-          const cleanPayload = JSON.parse(JSON.stringify(payload));
-          if (cleanPayload.tools === undefined) delete cleanPayload.tools;
-          
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(activeApiKey)}`;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`;
           try {
             const response = await fetch(url, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(cleanPayload)
+              headers: {
+                'Content-Type': 'application/json',
+                'x-goog-api-key': activeApiKey
+              },
+              body: JSON.stringify(payload)
             });
+
             if (!response.ok) {
               const errJson = await response.json().catch(() => ({}));
               const msg = errJson?.error?.message || `HTTP ${response.status}`;
               if (response.status === 429) {
                 detailedErrorMsg = "Batas kuota API terlampaui (429). Tunggu beberapa menit atau gunakan API Key lain.";
               } else if (response.status === 400 || response.status === 403) {
-                detailedErrorMsg = `API Key ditolak [${modelName}]: ${msg}`;
+                detailedErrorMsg = `API Key ditolak: ${msg}`;
               } else if (response.status === 404) {
-                detailedErrorMsg = `Model ${modelName} tidak tersedia untuk API Key Anda.`;
+                detailedErrorMsg = `Model ${modelName} tidak tersedia.`;
+                continue;
               } else {
                 detailedErrorMsg = `Error API (${response.status}): ${msg}`;
               }
               continue;
             }
+
             const data = await response.json();
             const candidate = data.candidates?.[0];
-            const rawText = candidate?.content?.parts?.[0]?.text || candidate?.text || candidate?.output;
+            const rawText = candidate?.content?.parts?.[0]?.text || candidate?.text;
             if (rawText) {
               articlesData = parseApiResponse(rawText, currentDate);
               const attributions = candidate?.groundingMetadata?.groundingAttributions || candidate?.groundingMetadata?.groundingChunks || [];
@@ -991,7 +1023,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
         });
         showToast(`✓ Berhasil dengan ${successModel}`, 'success');
       } else {
-        showError(detailedErrorMsg || "Gagal memproses data dari API. Periksa API Key Anda.");
+        showError(detailedErrorMsg || "Gagal memproses data. Periksa API Key Anda.");
         showToast('Gagal generate berita', 'error');
       }
     }
@@ -1168,8 +1200,8 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
 
     updateApiStatusIndicator();
 
-    console.log('%cJURNALIS PRO v5.0', 'color:#7c3aed;font-size:20px;font-weight:bold');
-    console.log('%cGemini murni + Auto-discovery + SEO + Terjemahan otomatis', 'color:#64748b');
+    console.log('%cJURNALIS PRO v6.0', 'color:#7c3aed;font-size:20px;font-weight:bold');
+    console.log('%cAutentikasi: x-goog-api-key header (cara resmi Google)', 'color:#64748b');
   </script>
 </body>
 </html>
