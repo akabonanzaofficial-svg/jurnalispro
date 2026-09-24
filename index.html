@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JURNALIS PRO - AI Newsroom</title>
-  <meta name="description" content="Generator berita AI profesional dengan multi-provider - JURNALIS PRO">
+  <meta name="description" content="Generator berita AI profesional dengan Gemini - JURNALIS PRO">
   <meta name="theme-color" content="#7c3aed">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -25,7 +25,7 @@
         }
       }
     }
-  </>
+  </script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -69,23 +69,30 @@
         <p class="text-[9px] sm:text-[10px] font-bold text-violet-100 uppercase tracking-widest mt-0.5 truncate">AI Newsroom</p>
       </div>
       <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-        <button onclick="toggleTheme()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors" title="Ganti Tema">
+        <button onclick="toggleTheme()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors" title="Ganti Tema" aria-label="Ganti Tema">
           <i data-lucide="moon" id="theme-icon" class="w-4 h-4 text-white"></i>
         </button>
-        <button onclick="toggleHistoryModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors" title="Riwayat">
+        <button onclick="toggleHistoryModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors" title="Riwayat" aria-label="Riwayat">
           <i data-lucide="history" class="w-4 h-4 text-white"></i>
         </button>
-        <button onclick="toggleApiModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors relative" title="Pengaturan API">
-          <i data-lucide="settings" class="w-4 h-4 text-white"></i>
+        <button onclick="toggleApiModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors relative" title="Pengaturan API Key" aria-label="Pengaturan API Key">
+          <i data-lucide="key" class="w-4 h-4 text-white"></i>
+          <span id="api-status-dot" class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white/80 hidden"></span>
         </button>
       </div>
     </div>
   </header>
 
-  <div id="provider-status-banner" class="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-    <div class="max-w-2xl mx-auto px-4 py-2 flex items-center gap-3 text-xs overflow-x-auto hide-scrollbar">
-      <span class="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Provider Aktif:</span>
-      <div id="provider-indicators" class="flex gap-2"></div>
+  <!-- Banner Peringatan API Key -->
+  <div id="api-warning-banner" class="hidden bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-900/50">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+      <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0"></i>
+      <p class="text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 flex-1">
+        Anda belum mengatur API Key. Klik tombol <b>🔑</b> untuk memasukkan Gemini API Key Anda.
+      </p>
+      <button onclick="toggleApiModal()" class="text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg transition-colors flex-shrink-0">
+        Atur Sekarang
+      </button>
     </div>
   </div>
 
@@ -104,15 +111,15 @@
       <div class="p-2 space-y-5">
         <div id="input-search-container" class="relative group">
           <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
-          <input type="text" id="input-search" onkeydown="if(event.key === 'Enter') generateNews()" placeholder="Ketik topik berita terkini..." class="w-full pl-14 pr-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 outline-none text-base font-medium">
+          <input type="text" id="input-search" onkeydown="if(event.key === 'Enter') generateNews()" placeholder="Ketik topik berita terkini..." class="w-full pl-14 pr-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 outline-none text-base font-medium">
         </div>
 
         <div id="input-coverage-container" class="hidden">
-          <textarea id="input-coverage" placeholder="Tempel catatan liputan, press release, atau poin rapat di sini..." class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 outline-none text-base min-h-[160px] resize-y font-medium"></textarea>
+          <textarea id="input-coverage" placeholder="Tempel catatan liputan, press release, atau poin rapat di sini..." class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 outline-none text-base min-h-[160px] resize-y font-medium"></textarea>
           <div class="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/50 flex items-start gap-2">
             <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
             <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-              <b>Catatan Privasi:</b> Jika Anda menggunakan API Key gratis, data dapat digunakan untuk pelatihan model. Jangan masukkan informasi yang bersifat sangat rahasia.
+              <b>Catatan Privasi:</b> Jika menggunakan API Key gratis, data dapat digunakan untuk pelatihan model. Jangan masukkan informasi yang sangat rahasia.
             </p>
           </div>
         </div>
@@ -216,7 +223,7 @@
       </div>
       <div id="sources-container" class="space-y-3 hidden">
         <h3 class="flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider pl-2">
-          <i data-lucide="globe" class="w-3.5 h-3.5 mr-1.5"></i> Sumber Berita
+          <i data-lucide="globe" class="w-3.5 h-3.5 mr-1.5"></i> Sumber Validasi AI
         </h3>
         <div id="sources-list" class="flex overflow-x-auto gap-3 pb-2 hide-scrollbar"></div>
       </div>
@@ -228,95 +235,65 @@
     <i data-lucide="arrow-up" class="w-5 h-5"></i>
   </button>
 
-  <!-- Modal Pengaturan Multi-Provider -->
+  <!-- Modal API Key -->
   <div id="api-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300" onclick="if(event.target === this) toggleApiModal()">
-    <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-lg transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="api-modal-content">
+    <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-md transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="api-modal-content">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold flex items-center">
-          <i data-lucide="settings" class="w-5 h-5 mr-2 text-violet-600"></i>
-          Pengaturan AI Provider
+          <i data-lucide="key" class="w-5 h-5 mr-2 text-violet-600"></i>
+          Gemini API Key
         </h3>
-        <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600">
+        <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600" aria-label="Tutup">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <div class="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
         <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed">
-          <b>Groq, Cerebras, dan SambaNova</b> adalah provider yang tertanam. Isi API Key pribadi Anda untuk masing-masing agar aplikasi bisa berjalan.
+          Kunci disimpan <b>hanya di browser Anda</b> (localStorage) dan tidak pernah dikirim ke server lain selain Google.
         </p>
       </div>
 
-      <!-- SambaNova (Embedded - User Input) -->
-      <div class="mb-3 p-4 rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 bg-violet-50/50 dark:bg-violet-900/10">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-              <i data-lucide="server" class="w-4 h-4 text-violet-600"></i>
-            </div>
-            <div>
-              <p class="font-bold text-sm">SambaNova (Llama 3.3 70B)</p>
-              <p class="text-[10px] text-slate-500">Fallback 3 • User Input</p>
-            </div>
-          </div>
-          <span id="sambanova-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
-        </div>
+      <details class="mb-4 group">
+        <summary class="cursor-pointer text-xs font-bold text-violet-600 hover:text-violet-700 flex items-center select-none">
+          <i data-lucide="help-circle" class="w-3.5 h-3.5 mr-1.5 group-open:rotate-90 transition-transform"></i>
+          Cara mendapatkan API Key gratis
+        </summary>
+        <ol class="mt-3 pl-5 space-y-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed list-decimal">
+          <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-violet-600 hover:underline font-semibold">Google AI Studio <i data-lucide="external-link" class="w-3 h-3 inline"></i></a></li>
+          <li>Login dengan akun Google Anda</li>
+          <li>Klik tombol <b>"Create API Key"</b></li>
+          <li>Salin kunci yang muncul (<code class="bg-slate-100 dark:bg-slate-800 px-1 rounded font-mono">AIzaSy...</code> atau <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded font-mono">AQ...</code>)</li>
+          <li>Tempel di kolom di bawah ini</li>
+        </ol>
+      </details>
 
-        <div class="relative mb-2">
-          <input type="password" id="input-sambanova-key" placeholder="Tempel SambaNova API Key..." class="w-full p-3 pr-12 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 outline-none font-mono text-xs">
-          <button type="button" onclick="toggleKeyVisibility('input-sambanova-key','sambanova-eye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 p-1.5">
-            <i data-lucide="eye" id="sambanova-eye" class="w-4 h-4"></i>
-          </button>
-        </div>
-        <p id="sambanova-key-status" class="text-xs font-semibold pl-1 min-h-[16px] mb-2"></p>
+      <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2 pl-1">API Key Anda</label>
 
-        <div class="flex gap-2">
-          <button onclick="testSambaNova()" id="btn-test-sambanova" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-900/50 hover:bg-violet-50 transition-colors flex items-center justify-center">
-            <i data-lucide="flask-conical" class="w-3.5 h-3.5 mr-1.5"></i>
-            <span id="test-sambanova-text">Test</span>
-          </button>
-          <button onclick="deleteSambaNovaKey()" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-red-600 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 hover:bg-red-50 transition-colors flex items-center justify-center">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i>
-            Hapus
-          </button>
-        </div>
+      <div class="relative mb-2">
+        <input type="password" id="input-api-key" placeholder="Tempel API Key di sini..." class="w-full p-4 pr-12 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 outline-none font-mono text-sm" autocomplete="off" spellcheck="false">
+        <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 p-1.5" title="Tampilkan/Sembunyikan">
+          <i data-lucide="eye" id="api-key-eye-icon" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <p id="api-key-status" class="text-xs font-semibold mb-3 pl-1 min-h-[16px]"></p>
+
+      <div class="flex gap-2 mb-3">
+        <button onclick="testApiKeyInModal()" id="btn-test-key" class="flex-1 py-3 rounded-xl font-bold text-sm text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-900/50 transition-colors flex items-center justify-center">
+          <i data-lucide="flask-conical" class="w-4 h-4 mr-1.5"></i>
+          <span id="btn-test-text">Test Koneksi</span>
+        </button>
+        <button onclick="deleteApiKey()" class="flex-1 py-3 rounded-xl font-bold text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-900/50 transition-colors flex items-center justify-center">
+          <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i>
+          Hapus
+        </button>
       </div>
 
-      <!-- Groq (Embedded) -->
-      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-              <i data-lucide="zap" class="w-4 h-4 text-orange-600"></i>
-            </div>
-            <div>
-              <p class="font-bold text-sm">Groq (GPT-OSS-120B)</p>
-              <p class="text-[10px] text-slate-500">Fallback 1 • Tertanam</p>
-            </div>
-          </div>
-          <span id="groq-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
-        </div>
-      </div>
+      <div id="test-key-result" class="hidden mb-3 p-3 rounded-xl text-xs font-semibold"></div>
 
-      <!-- Cerebras (Embedded) -->
-      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-              <i data-lucide="cpu" class="w-4 h-4 text-emerald-600"></i>
-            </div>
-            <div>
-              <p class="font-bold text-sm">Cerebras (GPT-OSS-120B)</p>
-              <p class="text-[10px] text-slate-500">Fallback 2 • Tertanam</p>
-            </div>
-          </div>
-          <span id="cerebras-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
-        </div>
-      </div>
-
-      <div class="flex gap-3 mt-4">
-        <button onclick="toggleApiModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">Tutup</button>
-        <button onclick="saveAllKeys()" class="flex-1 py-3 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700">Simpan Semua</button>
+      <div class="flex gap-3">
+        <button onclick="toggleApiModal()" class="flex-1 py-3.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">Batal</button>
+        <button onclick="saveApiKey()" class="flex-1 py-3.5 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700">Simpan Key</button>
       </div>
     </div>
   </div>
@@ -331,7 +308,7 @@
         </h3>
         <div class="flex items-center gap-2">
           <button onclick="clearHistory()" class="text-xs font-bold text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50">Hapus Semua</button>
-          <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-slate-600">
+          <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-slate-600" aria-label="Tutup">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
@@ -342,91 +319,9 @@
 
   <script>
     // ============================================================
-    // KONFIGURASI PROVIDER
+    // INIT
     // ============================================================
-    const EMBEDDED_KEYS = {
-      groq: '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',
-      cerebras: 'csk-hh4v4cnycffpr93krdt4p388pcd3pvj4cnj3nwd242xx2kmr'
-      // sambanova diisi oleh user via localStorage
-    };
-
-    const PROVIDERS = [
-      {
-        id: 'groq',
-        name: 'Groq',
-        subtitle: 'GPT-OSS-120B',
-        url: 'https://api.groq.com/openai/v1/chat/completions',
-        model: 'openai/gpt-oss-120b',
-        format: 'openai',
-        getKey: () => EMBEDDED_KEYS.groq,
-        isConfigured: () => EMBEDDED_KEYS.groq && !EMBEDDED_KEYS.groq.includes('xxxx')
-      },
-      {
-        id: 'cerebras',
-        name: 'Cerebras',
-        subtitle: 'GPT-OSS-120B',
-        url: 'https://api.cerebras.ai/v1/chat/completions',
-        model: 'gpt-oss-120b',
-        format: 'openai',
-        getKey: () => EMBEDDED_KEYS.cerebras,
-        isConfigured: () => EMBEDDED_KEYS.cerebras && !EMBEDDED_KEYS.cerebras.includes('xxxx')
-      },
-      {
-        id: 'sambanova',
-        name: 'SambaNova',
-        subtitle: 'Llama 3.3 70B',
-        url: 'https://api.sambanova.ai/v1/chat/completions',
-        model: 'Meta-Llama-3.3-70B-Instruct',
-        format: 'openai',
-        getKey: () => localStorage.getItem('jurnalis_sambanova_key'),
-        isConfigured: () => {
-          const k = localStorage.getItem('jurnalis_sambanova_key');
-          return k && k.length > 20;
-        }
-      }
-    ];
-
-    // ============================================================
-    // ATURAN JURNALISTIK & SEO
-    // ============================================================
-    const JOURNALISM_RULES = `
-【LARANGAN MUTLAK - PELANGGARAN BERAT】
-1. DILARANG menambahkan fakta, angka, tanggal, nama, atau kutipan yang TIDAK ADA di bahan input.
-2. DILARANG mengarang kutipan. Jika bahan tidak ada kutipan langsung, JANGAN tulis "kata dia...".
-3. Jika informasi bahan tidak cukup, BALAS dengan: "Informasi tidak cukup untuk generate berita."
-4. DILARANG menambahkan opini pribadi, komentar, atau kata sifat emosional.
-5. DILARANG menggunakan kalimat pasif jika bisa aktif.
-
-【ATURAN FORMAT BERITA (WAJIB)】
-- Judul: 6-8 kata, huruf kapital di awal setiap kata (kecuali "dan, di, yang, untuk"), TIDAK diawali angka, harus kalimat lengkap.
-- Paragraf 1 (LEAD): 1-2 kalimat. WAJIB memuat: APA, SIAPA, KAPAN, DI MANA.
-- Paragraf 2: Kutipan langsung (jika tersedia di bahan). Format: "Isi kutipan," kata Nama, Jabatan.
-- Paragraf 3 dst: Detail tambahan, data, latar belakang — piramida terbalik.
-- Maksimal 3 kalimat per paragraf.
-- Gunakan kalimat AKTIF.
-- Setiap paragraf memuat SATU informasi utama.
-
-【ATURAN SEO (WAJIB)】
-- Meta Title: 50-60 karakter. Kata kunci utama di 30 karakter pertama.
-- Meta Description: 150-155 karakter. Berisi kata kunci + nilai tambah.
-- Kata kunci utama muncul 2-3 kali secara natural.
-
-【OUTPUT WAJIB - FORMAT JSON MURNI】
-Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
-{
-  "articles": [
-    {
-      "title": "Judul Berita 6-8 Kata",
-      "meta_title": "Meta Title 50-60 Karakter",
-      "meta_description": "Meta description 150-155 karakter...",
-      "angle": "Sudut Pandang",
-      "content": "Isi berita. Pisahkan paragraf dengan \\n\\n",
-      "source_name": "Nama Media",
-      "source_date": "Tanggal"
-    }
-  ]
-}
-`;
+    lucide.createIcons();
 
     // ============================================================
     // STATE
@@ -439,6 +334,17 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     let currentRequestId = 0;
 
     const MAX_HISTORY = 20;
+    const API_KEY_STORAGE = 'jurnalis_gemini_api_key';
+    const API_KEY_REGEX = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/;
+
+    const FALLBACK_MODELS = [
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-2.5-pro',
+      'gemini-1.5-pro'
+    ];
+
     const angleThemes = [
       { bg: "bg-blue-50 dark:bg-blue-900/20", text: "text-blue-700 dark:text-blue-300", border: "border-blue-100 dark:border-blue-900/50", icon: "text-blue-500" },
       { bg: "bg-fuchsia-50 dark:bg-fuchsia-900/20", text: "text-fuchsia-700 dark:text-fuchsia-300", border: "border-fuchsia-100 dark:border-fuchsia-900/50", icon: "text-fuchsia-500" },
@@ -448,54 +354,99 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     ];
 
     // ============================================================
-    // INIT
+    // ATURAN JURNALISTIK, SEO, & TERJEMAHAN
     // ============================================================
-    lucide.createIcons();
+    const JOURNALISM_RULES = `Kamu adalah AI Editor JURNALIS PRO, jurnalis senior berbahasa Indonesia.
 
+【ATURAN BAHASA - WAJIB】
+1. SELURUH output WAJIB dalam Bahasa Indonesia baku (EYD/PUEBI).
+2. Jika bahan/sumber dalam bahasa asing (Inggris, Arab, dll), TERJEMAHKAN dulu ke Bahasa Indonesia sebelum menulis.
+3. Nama orang, tempat, institusi asing: tulis sesuai ejaan asli, lalu beri penjelasan dalam kurung jika perlu.
+4. Istilah teknis asing yang belum ada padanannya: tulis miring atau beri padanan Indonesia.
+5. Jangan campur bahasa Indonesia dengan bahasa asing dalam satu kalimat.
+
+【LARANGAN MUTLAK】
+1. DILARANG menambahkan fakta, angka, tanggal, nama, atau kutipan yang tidak ada di bahan.
+2. DILARANG mengarang kutipan. Jika tidak ada kutipan di bahan, jangan tulis "kata dia...".
+3. DILARANG menambahkan opini pribadi atau kata sifat emosional.
+4. DILARANG menggunakan kalimat pasif jika bisa aktif.
+
+【ATURAN FORMAT BERITA】
+- Judul: 6-8 kata, huruf kapital di awal kata, tidak diawali angka, harus kalimat lengkap.
+- Paragraf 1 (LEAD): 1-2 kalimat. WAJIB memuat: APA, SIAPA, KAPAN, DI MANA.
+- Paragraf 2: Kutipan langsung (jika tersedia). Format: "Isi kutipan," kata Nama, Jabatan.
+- Paragraf 3+: Detail tambahan, data, latar belakang, urut piramida terbalik.
+- Maksimal 3 kalimat per paragraf.
+- Gunakan kalimat AKTIF.
+
+【ATURAN SEO】
+- Meta Title: 50-60 karakter. Kata kunci utama di 30 karakter pertama.
+- Meta Description: 150-155 karakter. Berisi kata kunci + nilai tambah.
+- Kata kunci utama muncul 2-3 kali secara natural di badan artikel.
+
+【OUTPUT WAJIB - JSON MURNI】
+Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
+{
+  "articles": [
+    {
+      "title": "Judul Berita 6-8 Kata",
+      "meta_title": "Meta Title 50-60 Karakter",
+      "meta_description": "Meta description 150-155 karakter yang menarik...",
+      "angle": "Sudut Pandang",
+      "content": "Isi berita dalam Bahasa Indonesia. Pisahkan paragraf dengan \\n\\n",
+      "source_name": "Nama Media",
+      "source_date": "Tanggal"
+    }
+  ]
+}`;
+
+    // ============================================================
+    // THEME
+    // ============================================================
     function initTheme() {
       const saved = localStorage.getItem('jurnalis_theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const isDark = saved ? saved === 'dark' : prefersDark;
       document.documentElement.classList.toggle('dark', isDark);
-      const icon = document.getElementById('theme-icon');
-      if (icon) icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      updateThemeIcon(isDark);
     }
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('jurnalis_theme', isDark ? 'dark' : 'light');
+      updateThemeIcon(isDark);
+    }
+    function updateThemeIcon(isDark) {
       const icon = document.getElementById('theme-icon');
-      if (icon) icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      if (!icon) return;
+      icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
       lucide.createIcons();
     }
     initTheme();
 
-    function updateProviderIndicators() {
-      const container = document.getElementById('provider-indicators');
-      container.innerHTML = PROVIDERS.map(p => {
-        const active = p.isConfigured();
-        return `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${active ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}">
-          ${p.name} ${active ? '●' : '○'}
-        </span>`;
-      }).join('');
+    // ============================================================
+    // API STATUS
+    // ============================================================
+    function updateApiStatusIndicator() {
+      const dot = document.getElementById('api-status-dot');
+      const banner = document.getElementById('api-warning-banner');
+      const key = localStorage.getItem(API_KEY_STORAGE);
+      if (key && API_KEY_REGEX.test(key)) {
+        dot.classList.add('hidden');
+        banner.classList.add('hidden');
+      } else if (key) {
+        dot.classList.remove('hidden');
+        dot.className = 'absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-500 border-2 border-white/80';
+        banner.classList.add('hidden');
+      } else {
+        dot.classList.remove('hidden');
+        dot.className = 'absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white/80';
+        banner.classList.remove('hidden');
+      }
     }
 
-    function updateProviderModalStatus() {
-      const groqEl = document.getElementById('groq-status');
-      const cerebEl = document.getElementById('cerebras-status');
-      const sambaEl = document.getElementById('sambanova-status');
-      
-      [groqEl, cerebEl, sambaEl].forEach((el, i) => {
-        const p = PROVIDERS[i];
-        if (p.isConfigured()) {
-          el.textContent = '✓ Aktif';
-          el.className = 'text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
-        } else {
-          el.textContent = '○ Belum';
-          el.className = 'text-[10px] font-bold px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500';
-        }
-      });
-    }
-
+    // ============================================================
+    // TOAST
+    // ============================================================
     function showToast(message, type = 'info', duration = 3000) {
       const container = document.getElementById('toast-container');
       const colors = { info: 'bg-slate-800 dark:bg-slate-700 text-white', success: 'bg-emerald-600 text-white', error: 'bg-red-600 text-white', warning: 'bg-amber-500 text-white' };
@@ -519,13 +470,17 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     function toggleApiModal() {
       const modal = document.getElementById('api-modal');
       const content = document.getElementById('api-modal-content');
+      const testRes = document.getElementById('test-key-result');
+      if (testRes) testRes.classList.add('hidden');
       if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
-        const storedSamba = localStorage.getItem('jurnalis_sambanova_key') || '';
-        document.getElementById('input-sambanova-key').value = storedSamba;
-        validateSambaNovaKey();
-        updateProviderModalStatus();
-        setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+        document.getElementById('input-api-key').value = localStorage.getItem(API_KEY_STORAGE) || '';
+        validateApiKeyInput();
+        setTimeout(() => {
+          modal.classList.remove('opacity-0');
+          content.classList.remove('scale-95');
+          document.getElementById('input-api-key').focus();
+        }, 10);
       } else {
         modal.classList.add('opacity-0');
         content.classList.add('scale-95');
@@ -533,75 +488,104 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       }
     }
 
-    function toggleKeyVisibility(inputId, iconId) {
-      const input = document.getElementById(inputId);
-      const icon = document.getElementById(iconId);
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('input-api-key');
+      const icon = document.getElementById('api-key-eye-icon');
       if (input.type === 'password') { input.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); }
       else { input.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
       lucide.createIcons();
     }
 
-    function validateSambaNovaKey() {
-      const key = document.getElementById('input-sambanova-key').value.trim();
-      const el = document.getElementById('sambanova-key-status');
-      if (!key) { el.textContent = ''; el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2'; return; }
-      if (key.length > 20) {
-        el.innerHTML = '✓ Format valid';
-        el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2 text-emerald-600';
+    function validateApiKeyInput() {
+      const key = document.getElementById('input-api-key').value.trim();
+      const statusEl = document.getElementById('api-key-status');
+      if (!key) { statusEl.textContent = ''; statusEl.className = 'text-xs font-semibold mb-3 pl-1 min-h-[16px]'; return; }
+      if (API_KEY_REGEX.test(key)) {
+        statusEl.innerHTML = '✓ Format API Key valid';
+        statusEl.className = 'text-xs font-semibold mb-3 pl-1 min-h-[16px] text-emerald-600 dark:text-emerald-400';
       } else {
-        el.innerHTML = '⚠ Kunci terlalu pendek';
-        el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2 text-amber-600';
+        statusEl.innerHTML = '⚠ Format tidak sesuai. Harus <b>AIzaSy...</b> atau <b>AQ...</b>';
+        statusEl.className = 'text-xs font-semibold mb-3 pl-1 min-h-[16px] text-amber-600 dark:text-amber-400';
       }
     }
-    document.getElementById('input-sambanova-key').addEventListener('input', validateSambaNovaKey);
+    document.getElementById('input-api-key').addEventListener('input', validateApiKeyInput);
 
-    function saveAllKeys() {
-      const sambaKey = document.getElementById('input-sambanova-key').value.trim();
-      if (sambaKey) {
-        localStorage.setItem('jurnalis_sambanova_key', sambaKey);
-        showToast('SambaNova API Key disimpan', 'success');
-      } else {
-        localStorage.removeItem('jurnalis_sambanova_key');
-        showToast('SambaNova API Key dihapus', 'info');
-      }
-      updateProviderIndicators();
-      updateProviderModalStatus();
+    function saveApiKey() {
+      const key = document.getElementById('input-api-key').value.trim();
+      if (!key) { showToast('API Key tidak boleh kosong', 'warning'); return; }
+      localStorage.setItem(API_KEY_STORAGE, key);
+      updateApiStatusIndicator();
       toggleApiModal();
+      hideError();
+      showToast('API Key berhasil disimpan', 'success');
     }
 
-    function deleteSambaNovaKey() {
-      if (!confirm('Hapus SambaNova API Key?')) return;
-      localStorage.removeItem('jurnalis_sambanova_key');
-      document.getElementById('input-sambanova-key').value = '';
-      validateSambaNovaKey();
-      updateProviderIndicators();
-      updateProviderModalStatus();
-      showToast('SambaNova API Key dihapus', 'info');
+    function deleteApiKey() {
+      if (!confirm('Hapus API Key dari browser ini?')) return;
+      localStorage.removeItem(API_KEY_STORAGE);
+      document.getElementById('input-api-key').value = '';
+      validateApiKeyInput();
+      updateApiStatusIndicator();
+      showToast('API Key dihapus', 'info');
     }
 
-    async function testSambaNova() {
-      const key = document.getElementById('input-sambanova-key').value.trim();
-      if (!key) { showToast('Masukkan API Key dulu', 'warning'); return; }
-      const btn = document.getElementById('btn-test-sambanova');
-      const text = document.getElementById('test-sambanova-text');
-      text.textContent = 'Menguji...';
+    async function testApiKeyInModal() {
+      const inputKey = document.getElementById('input-api-key').value.trim() || localStorage.getItem(API_KEY_STORAGE);
+      const resContainer = document.getElementById('test-key-result');
+      const btn = document.getElementById('btn-test-key');
+      const btnText = document.getElementById('btn-test-text');
+      
+      if (!inputKey) {
+        resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-900/50';
+        resContainer.textContent = 'Masukkan API Key terlebih dahulu.';
+        resContainer.classList.remove('hidden');
+        return;
+      }
+
       btn.disabled = true;
+      btnText.textContent = 'Menguji...';
+      resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400';
+      resContainer.textContent = 'Menguji koneksi ke Gemini API...';
+      resContainer.classList.remove('hidden');
+
       try {
-        const res = await fetch('https://api.sambanova.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-          body: JSON.stringify({
-            model: 'Meta-Llama-3.3-70B-Instruct',
-            messages: [{ role: 'user', content: 'Halo' }],
-            max_tokens: 20
-          })
-        });
-        if (res.ok) showToast('✓ SambaNova API Key valid', 'success', 4000);
-        else if (res.status === 429) showToast('Valid, tapi kuota penuh', 'warning', 4000);
-        else if (res.status === 401) showToast('API Key ditolak', 'error', 4000);
-        else showToast('Ditolak: HTTP ' + res.status, 'error', 4000);
-      } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
-      finally { text.textContent = 'Test'; btn.disabled = false; }
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(inputKey)}`);
+        if (listRes.ok) {
+          const data = await listRes.json();
+          const count = data.models?.length || 0;
+          resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50';
+          resContainer.textContent = `✓ API Key valid! ${count} model tersedia.`;
+          btn.disabled = false;
+          btnText.textContent = 'Test Koneksi';
+          return;
+        }
+
+        // Fallback: coba generate dengan model umum
+        const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+        for (const model of modelsToTry) {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(inputKey)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: 'Halo' }] }] })
+          });
+          if (res.ok) {
+            resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/50';
+            resContainer.textContent = `✓ API Key valid dan siap digunakan!`;
+            btn.disabled = false;
+            btnText.textContent = 'Test Koneksi';
+            return;
+          }
+        }
+
+        resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-900/50';
+        resContainer.textContent = '✕ API Key tidak valid atau tidak memiliki akses model.';
+      } catch (e) {
+        resContainer.className = 'mb-3 p-3 rounded-xl text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-900/50';
+        resContainer.textContent = '✕ Koneksi gagal: ' + e.message;
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Test Koneksi';
+      }
     }
 
     // ============================================================
@@ -648,7 +632,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
             <span class="text-[10px] font-bold text-slate-400 uppercase">${item.style}</span>
           </div>
           <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(item.preview)}</p>
-          <p class="text-[10px] text-slate-400 mt-2 font-semibold">${new Date(item.timestamp).toLocaleString('id-ID')} • ${item.articleCount} artikel • ${item.provider || ''}</p>
+          <p class="text-[10px] text-slate-400 mt-2 font-semibold">${new Date(item.timestamp).toLocaleString('id-ID')} • ${item.articleCount} artikel</p>
         </button>
       `).join('');
       lucide.createIcons();
@@ -664,8 +648,9 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       document.getElementById(currentMode === 'search' ? 'input-search' : 'input-coverage').value = item.topic;
       globalArticles = item.articles;
       globalSources = item.sources || [];
-      renderResults(item.articles, item.sources || [], item.provider || '');
+      renderResults(item.articles, item.sources || []);
       toggleHistoryModal();
+      showToast('Riwayat dimuat', 'success');
     }
 
     // ============================================================
@@ -766,68 +751,105 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     // ============================================================
-    // FETCH NEWS FROM RSS
+    // FETCH AVAILABLE MODELS (auto-discovery)
     // ============================================================
-    async function fetchNewsFromRSS(topic) {
-  const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzVrNo-bSK3mkFYexeTXngUsDOmEPCG1sQ5v3SJoTMBnp_EXPq76LiflT6QA9ROVNUD/exec';
-  const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic)}+when:3d&hl=id-ID&gl=ID&ceid=ID:id`;
-  
-  try {
-    const res = await fetch(GAS_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'rss', url: rssUrl })
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.items || [];
-  } catch (e) {
-    console.warn('RSS via GAS gagal:', e.message);
-    return [];
-  }
-}
-
-async function callProvider(provider, prompt, systemInstruction) {
-  const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzVrNo-bSK3mkFYexeTXngUsDOmEPCG1sQ5v3SJoTMBnp_EXPq76LiflT6QA9ROVNUD/exec';
-  
-  const response = await fetch(GAS_PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'ai',
-      provider: provider.id,
-      body: {
-        model: provider.model,
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000
+    async function fetchAvailableModels(key) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.models && Array.isArray(data.models)) {
+            const supported = data.models
+              .filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent'))
+              .map(m => m.name.replace(/^models\//, ''));
+            if (supported.length > 0) return supported;
+          }
+        }
+      } catch (e) {
+        console.warn("Gagal mengambil daftar model:", e);
       }
-    })
-  });
-  
-  if (!response.ok) throw new Error(`GAS Error: ${response.status}`);
-  const data = await response.json();
-  if (data.error) throw new Error(data.error);
-  
-  const text = data.choices?.[0]?.message?.content || '';
-  return { text, raw: data };
-}
+      return FALLBACK_MODELS;
+    }
+
     // ============================================================
-    // GENERATE NEWS (Multi-Provider Fallback)
+    // PARSE RESPONSE
+    // ============================================================
+    function parseApiResponse(rawText, currentDate) {
+      if (!rawText) throw new Error("Respons dari AI kosong.");
+      let cleaned = rawText.trim()
+        .replace(/^```(json)?/gi, '')
+        .replace(/```$/gi, '')
+        .trim();
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (parsed.articles && Array.isArray(parsed.articles)) return parsed.articles;
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed.title && parsed.content) return [parsed];
+      } catch (e) {}
+      const jsonObjMatch = cleaned.match(/\{[\s\S]*"articles"[\s\S]*\}/);
+      if (jsonObjMatch) {
+        try {
+          const parsed = JSON.parse(jsonObjMatch[0]);
+          if (parsed.articles) return parsed.articles;
+        } catch (e) {}
+      }
+      const jsonArrMatch = cleaned.match(/\[\s*\{[\s\S]*\}\s*\]/);
+      if (jsonArrMatch) {
+        try {
+          const parsed = JSON.parse(jsonArrMatch[0]);
+          if (Array.isArray(parsed)) return parsed;
+        } catch (e) {}
+      }
+      return parseFallbackPlainText(rawText, currentDate);
+    }
+
+    function parseFallbackPlainText(text, currentDate) {
+      const sections = text.split(/(?=Judul|Angle|Artikel \d|BERITA \d)/i).filter(s => s.trim().length > 20);
+      if (sections.length > 0) {
+        return sections.slice(0, 5).map((sec, idx) => {
+          const lines = sec.split('\n').map(l => l.trim()).filter(Boolean);
+          const title = lines.find(l => l.length > 10 && !l.toLowerCase().startsWith('angle')) || `Berita Utama #${idx + 1}`;
+          const content = lines.filter(l => l !== title).join('\n\n');
+          return {
+            title: title.replace(/^(Judul|Title):\s*/i, ''),
+            angle: `Perspektif #${idx + 1}`,
+            content: content || sec,
+            source_name: "Hasil Penelusuran AI",
+            source_date: currentDate,
+            meta_title: title.substring(0, 60),
+            meta_description: content.substring(0, 155)
+          };
+        });
+      }
+      return [{
+        title: "Artikel Berita Terbaru",
+        angle: "Sudut Pandang Utama",
+        content: text,
+        source_name: "Sumber Informasi Terkini",
+        source_date: currentDate,
+        meta_title: "Artikel Berita Terbaru Hari Ini",
+        meta_description: text.substring(0, 155)
+      }];
+    }
+
+    // ============================================================
+    // GENERATE NEWS
     // ============================================================
     async function generateNews() {
       if (isGenerating) return;
-
       const topic = currentMode === 'search'
         ? document.getElementById('input-search').value
         : document.getElementById('input-coverage').value;
-
       if (!topic.trim()) {
         showError('Silakan masukkan topik berita atau catatan liputan terlebih dahulu.');
         showToast('Input masih kosong', 'warning');
+        return;
+      }
+      const activeApiKey = localStorage.getItem(API_KEY_STORAGE);
+      if (!activeApiKey) {
+        showError('<b>API Key belum diatur!</b><br>Klik tombol 🔑 di pojok kanan atas untuk memasukkan Gemini API Key Anda.');
+        showToast('API Key belum diatur', 'error');
+        toggleApiModal();
         return;
       }
 
@@ -844,172 +866,140 @@ async function callProvider(provider, prompt, systemInstruction) {
 
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-      // Fetch berita dari RSS (hanya mode search)
-      let newsContext = '';
-      let rssSources = [];
-      if (currentMode === 'search') {
-        showToast('Mencari berita terbaru (3 hari terakhir)...', 'info', 2500);
-        rssSources = await fetchNewsFromRSS(topic);
-        if (rssSources.length > 0) {
-          newsContext = '\n\n【BAHAN BERITA DARI GOOGLE NEWS (3 HARI TERAKHIR)】\n' +
-            rssSources.map((n, i) => `${i + 1}. ${n.title}\n   Sumber: ${n.source}\n   Tanggal: ${n.pubDate}\n   Ringkasan: ${n.description.replace(/<[^>]*>/g, '').substring(0, 200)}`).join('\n\n');
-          showToast(`Ditemukan ${rssSources.length} berita terbaru`, 'success', 2000);
-        } else {
-          newsContext = '\n\n【CATATAN】Tidak ada berita terbaru ditemukan dari Google News. AI akan menggunakan pengetahuan internal, tapi HARUS tetap pada fakta yang tersedia dan tandai jika ada ketidakpastian.';
-          showToast('Tidak ada berita terbaru, lanjut tanpa bahan', 'warning', 3000);
-        }
-      }
-
       let styleInstruction = "";
       switch(currentStyle) {
         case 'straight': styleInstruction = "GAYA: Straight News (lugas, formal, piramida terbalik, 5W1H di lead)."; break;
         case 'feature': styleInstruction = "GAYA: Feature (storytelling, deskriptif, human interest)."; break;
-        case 'indepth': styleInstruction = "GAYA: In-Depth (analisis mendalam, kaya konteks)."; break;
-        case 'kasual': styleInstruction = "GAYA: Kasual & Populer (bahasa luwes, santai, interaktif)."; break;
+        case 'indepth': styleInstruction = "GAYA: In-Depth (analisis mendalam, kaya konteks & latar belakang)."; break;
+        case 'kasual': styleInstruction = "GAYA: Kasual & Populer (bahasa luwes, santai, kekinian, interaktif)."; break;
       }
-
       const lengthInstruction = {
         short: "Setiap artikel 3 paragraf.",
         medium: "Setiap artikel tepat 5 paragraf.",
         long: "Setiap artikel minimal 8 paragraf."
       }[lengthOption];
-
       const angleInstruction = angleOption === 'auto'
         ? `Setiap artikel harus memiliki angle yang berbeda dan bervariasi.`
         : `Fokuskan SEMUA artikel pada angle: "${angleOption}".`;
-
       const modeInstruction = modeOption === 'strict'
         ? `MODE KETAT: Hanya gunakan fakta yang ADA di bahan. DILARANG menambahkan fakta dari pengetahuan umum.`
-        : `MODE KREATIF: Boleh menambahkan konteks/latar belakang dari pengetahuan umum, TAPI harus ditandai dengan "(konteks tambahan)" di dalam teks.`;
-
+        : `MODE KREATIF: Boleh menambahkan konteks/latar belakang dari pengetahuan umum, TAPI tandai dengan "(konteks tambahan)".`;
       const extraText = extraInstruction ? `\n\nINSTRUKSI TAMBAHAN: ${extraInstruction}` : '';
 
-      const promptText = currentMode === 'search'
-        ? `Tanggal Hari Ini: ${currentDate}\nTopik: ${topic}\n${newsContext}\n\nBerdasarkan bahan di atas, buat ${articleCount} artikel berita.\n${styleInstruction}\n${lengthInstruction}\n${angleInstruction}\n${modeInstruction}\n${extraText}`
-        : `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan Mentah:\n${topic}\n\nKembangkan catatan di atas menjadi ${articleCount} artikel berita utuh.\n${styleInstruction}\n${lengthInstruction}\n${angleInstruction}\n${modeInstruction}\n${extraText}`;
-
-      const systemInstruction = JOURNALISM_RULES;
-
-      // ============ FALLBACK CHAIN ============
-      // Prioritas: Groq → Cerebras → SambaNova (user)
-      const configuredProviders = [
-        PROVIDERS.find(p => p.id === 'groq'),
-        PROVIDERS.find(p => p.id === 'cerebras'),
-        PROVIDERS.find(p => p.id === 'sambanova')
-      ].filter(p => p && p.isConfigured());
-
-      if (configuredProviders.length === 0) {
-        setLoading(false);
-        showError('<b>Tidak ada provider AI yang tersedia!</b><br><br>Developer belum mengkonfigurasi Groq/Cerebras API Key, dan Anda belum mengisi SambaNova API Key.<br><br>Silakan isi SambaNova API Key Anda di menu ⚙️ Pengaturan.<br><br>Daftar gratis di <a href="https://cloud.sambanova.ai" target="_blank" class="underline font-bold">cloud.sambanova.ai</a>');
-        showToast('Tidak ada provider tersedia', 'error');
-        return;
+      let promptText = "";
+      if (currentMode === 'search') {
+        promptText = `Tanggal Hari Ini: ${currentDate}\nTopik: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan Google Search untuk mencari BERITA TERBARU terkait topik ini.\n2. Hanya gunakan berita dari 3 HARI TERAKHIR (maksimal ${currentDate} sampai 3 hari ke belakang). JANGAN gunakan berita lama.\n3. Jika sumber berita dalam bahasa asing, TERJEMAHKAN ke Bahasa Indonesia.\n\nBuat ${articleCount} artikel berita berdasarkan fakta terbaru.\n${styleInstruction}\n${lengthInstruction}\n${angleInstruction}\n${modeInstruction}\n${extraText}`;
+      } else {
+        promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan Mentah:\n${topic}\n\nKembangkan catatan di atas menjadi ${articleCount} artikel berita utuh dalam Bahasa Indonesia.\n${styleInstruction}\n${lengthInstruction}\n${angleInstruction}\n${modeInstruction}\n${extraText}`;
       }
 
-      let success = false;
-      let lastError = null;
-      let usedProvider = '';
+      const payloadsToTry = [
+        {
+          contents: [{ parts: [{ text: promptText }] }],
+          systemInstruction: { parts: [{ text: JOURNALISM_RULES }] },
+          tools: currentMode === 'search' ? [{ "googleSearch": {} }] : undefined
+        },
+        {
+          contents: [{ parts: [{ text: promptText }] }],
+          systemInstruction: { parts: [{ text: JOURNALISM_RULES }] },
+          tools: currentMode === 'search' ? [{ "google_search": {} }] : undefined
+        },
+        {
+          contents: [{ parts: [{ text: promptText }] }],
+          systemInstruction: { parts: [{ text: JOURNALISM_RULES }] }
+        }
+      ];
 
-      for (let i = 0; i < configuredProviders.length; i++) {
-        const provider = configuredProviders[i];
+      let articlesData = null;
+      let sourcesData = [];
+      let detailedErrorMsg = "";
+      let successModel = '';
+
+      const availableModels = await fetchAvailableModels(activeApiKey);
+      const preferredOrder = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'];
+      const sortedModels = Array.from(new Set([
+        ...preferredOrder.filter(m => availableModels.includes(m)),
+        ...availableModels,
+        ...FALLBACK_MODELS
+      ]));
+
+      for (const modelName of sortedModels) {
+        if (articlesData) break;
         if (requestId !== currentRequestId) return;
-        
-        // Delay 3 detik sebelum fallback (kecuali provider pertama)
-        if (i > 0) {
-          showToast(`Menunggu 3 detik sebelum mencoba ${provider.name}...`, 'info', 2500);
-          await new Promise(r => setTimeout(r, 3000));
-        }
-        
-        try {
-          showToast(`Mencoba ${provider.name}...`, 'info', 1500);
-          const result = await callProvider(provider, promptText, systemInstruction);
-          
-          if (!result.text) throw new Error('Respons kosong');
-          
-          const parsed = extractJSON(result.text);
-          const articles = Array.isArray(parsed?.articles) ? parsed.articles : [];
-          if (articles.length === 0) throw new Error('Tidak ada artikel');
 
-          let sources = rssSources.map(s => ({ uri: s.link, title: s.source }));
-          sources = Array.from(new Map(sources.map(item => [item.uri, item])).values()).slice(0, 5);
-
-          usedProvider = `${provider.name} (${provider.subtitle})`;
-          renderResults(articles, sources, usedProvider);
+        for (const payload of payloadsToTry) {
+          const cleanPayload = JSON.parse(JSON.stringify(payload));
+          if (cleanPayload.tools === undefined) delete cleanPayload.tools;
           
-          saveHistory({
-            timestamp: Date.now(),
-            topic: topic.substring(0, 100),
-            preview: articles[0]?.title || '',
-            mode: currentMode,
-            style: currentStyle,
-            styleKey: currentStyle,
-            articleCount: articles.length,
-            articles,
-            sources,
-            provider: usedProvider
-          });
-          
-          success = true;
-          showToast(`✓ Berhasil dengan ${provider.name}`, 'success');
-          break;
-
-        } catch (err) {
-          lastError = err;
-          console.warn(`Provider ${provider.name} gagal:`, err.message);
-          
-          if (err.status === 429) {
-            showToast(`${provider.name} sibuk, beralih ke provider berikutnya...`, 'warning', 2500);
-            continue;
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(activeApiKey)}`;
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(cleanPayload)
+            });
+            if (!response.ok) {
+              const errJson = await response.json().catch(() => ({}));
+              const msg = errJson?.error?.message || `HTTP ${response.status}`;
+              if (response.status === 429) {
+                detailedErrorMsg = "Batas kuota API terlampaui (429). Tunggu beberapa menit atau gunakan API Key lain.";
+              } else if (response.status === 400 || response.status === 403) {
+                detailedErrorMsg = `API Key ditolak [${modelName}]: ${msg}`;
+              } else if (response.status === 404) {
+                detailedErrorMsg = `Model ${modelName} tidak tersedia untuk API Key Anda.`;
+              } else {
+                detailedErrorMsg = `Error API (${response.status}): ${msg}`;
+              }
+              continue;
+            }
+            const data = await response.json();
+            const candidate = data.candidates?.[0];
+            const rawText = candidate?.content?.parts?.[0]?.text || candidate?.text || candidate?.output;
+            if (rawText) {
+              articlesData = parseApiResponse(rawText, currentDate);
+              const attributions = candidate?.groundingMetadata?.groundingAttributions || candidate?.groundingMetadata?.groundingChunks || [];
+              const rawSources = attributions.map(a => {
+                const web = a.web || a;
+                return { uri: web.uri || web.url, title: web.title || web.uri };
+              }).filter(s => s.uri && s.title);
+              sourcesData = Array.from(new Map(rawSources.map(s => [s.uri, s])).values());
+              successModel = modelName;
+              break;
+            }
+          } catch (err) {
+            detailedErrorMsg = err.message || "Gagal menghubungi Gemini API.";
           }
-          if (err.status === 401 || err.status === 403) {
-            showToast(`${provider.name} API Key ditolak, coba provider lain...`, 'warning', 2500);
-            continue;
-          }
-          if (err.status === 404) {
-            showToast(`${provider.name} model tidak ditemukan, coba provider lain...`, 'warning', 2500);
-            continue;
-          }
-          if (err.message.includes('JSON')) {
-            showToast(`${provider.name} gagal format JSON, coba provider lain...`, 'warning', 2500);
-            continue;
-          }
-          continue;
         }
       }
 
-      if (requestId === currentRequestId) {
-        setLoading(false);
-        if (!success) {
-          const errorDetail = lastError?.detail ? `<br><br><small style="opacity:0.7">Detail: ${escapeHtml(String(lastError.detail).substring(0, 200))}</small>` : '';
-          showError('<b>Semua provider AI sedang sibuk atau gagal.</b><br><br>' +
-            '<b>Solusi:</b><br>' +
-            '• Tunggu 1-2 menit lalu coba lagi<br>' +
-            '• Isi SambaNova API Key di menu ⚙️ sebagai cadangan<br>' +
-            '• Pastikan Groq/Cerebras API Key masih aktif' + errorDetail);
-          showToast('Semua provider gagal', 'error');
-        }
-      }
-    }
+      if (requestId !== currentRequestId) return;
+      setLoading(false);
 
-    // ============================================================
-    // JSON EXTRACTION
-    // ============================================================
-    function extractJSON(text) {
-      if (!text) throw new Error('Respons kosong');
-      let cleaned = text.trim();
-      cleaned = cleaned.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-      try { return JSON.parse(cleaned); } catch (_) {}
-      const first = cleaned.indexOf('{');
-      const last = cleaned.lastIndexOf('}');
-      if (first !== -1 && last > first) {
-        try { return JSON.parse(cleaned.substring(first, last + 1)); } catch (_) {}
+      if (articlesData && articlesData.length > 0) {
+        renderResults(articlesData, sourcesData, successModel);
+        saveHistory({
+          timestamp: Date.now(),
+          topic: topic.substring(0, 100),
+          preview: articlesData[0]?.title || '',
+          mode: currentMode,
+          style: currentStyle,
+          styleKey: currentStyle,
+          articleCount: articlesData.length,
+          articles: articlesData,
+          sources: sourcesData,
+          model: successModel
+        });
+        showToast(`✓ Berhasil dengan ${successModel}`, 'success');
+      } else {
+        showError(detailedErrorMsg || "Gagal memproses data dari API. Periksa API Key Anda.");
+        showToast('Gagal generate berita', 'error');
       }
-      throw new Error('JSON tidak valid');
     }
 
     // ============================================================
     // RENDER RESULTS
     // ============================================================
-    function renderResults(articles, sources, providerName = '') {
+    function renderResults(articles, sources, modelName = '') {
       globalArticles = articles;
       globalSources = sources || [];
       const resultsSection = document.getElementById('results-section');
@@ -1036,14 +1026,18 @@ async function callProvider(provider, prompt, systemInstruction) {
           .split(/\n\n+/).filter(p => p.trim()).map(p =>
             `<p class="mb-5 text-slate-600 dark:text-slate-300 leading-relaxed text-justify text-base sm:text-lg">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`
           ).join('');
-
         const metaHTML = article.meta_title ? `
-          <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs space-y-1">
-            <p><b class="text-slate-500">SEO Title:</b> ${escapeHtml(article.meta_title)}</p>
-            <p><b class="text-slate-500">SEO Desc:</b> ${escapeHtml(article.meta_description || '-')}</p>
+          <div class="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs space-y-2 border border-slate-100 dark:border-slate-800">
+            <div class="flex items-start gap-2">
+              <span class="font-bold text-violet-600 dark:text-violet-400 flex-shrink-0">SEO Title:</span>
+              <span class="text-slate-600 dark:text-slate-300">${escapeHtml(article.meta_title)}</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="font-bold text-violet-600 dark:text-violet-400 flex-shrink-0">SEO Desc:</span>
+              <span class="text-slate-600 dark:text-slate-300">${escapeHtml(article.meta_description || '-')}</span>
+            </div>
           </div>
         ` : '';
-
         return `
           <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-lg border border-slate-100 dark:border-slate-800 overflow-hidden animate-slide-up">
             <div class="p-6 border-b ${theme.border} ${theme.bg} flex justify-between items-start gap-4">
@@ -1053,14 +1047,12 @@ async function callProvider(provider, prompt, systemInstruction) {
                 </div>
                 <h2 class="text-xl sm:text-2xl font-bold leading-tight">${escapeHtml(article.title || '(Tanpa Judul)')}</h2>
               </div>
-              <div class="flex flex-col gap-1.5 flex-shrink-0">
-                <button onclick="handleCopy(${index}, this)" class="p-3 text-slate-400 hover:text-violet-600 rounded-2xl transition-all shadow-sm bg-white/50 dark:bg-slate-800/50 active:scale-95" title="Salin">
-                  <div class="icon-copy"><i data-lucide="copy" class="w-5 h-5"></i></div>
-                  <div class="icon-check hidden"><i data-lucide="check" class="w-5 h-5 text-green-500"></i></div>
-                </button>
-              </div>
+              <button onclick="handleCopy(${index}, this)" class="p-3 text-slate-400 hover:text-violet-600 rounded-2xl transition-all shadow-sm bg-white/50 dark:bg-slate-800/50 active:scale-95 flex-shrink-0" title="Salin">
+                <div class="icon-copy"><i data-lucide="copy" class="w-5 h-5"></i></div>
+                <div class="icon-check hidden"><i data-lucide="check" class="w-5 h-5 text-green-500"></i></div>
+              </button>
             </div>
-            <div class="p-6 sm:p-8 article-content" id="article-content-${index}">
+            <div class="p-6 sm:p-8 article-content">
               ${paragraphsHTML}
               ${metaHTML}
             </div>
@@ -1071,13 +1063,13 @@ async function callProvider(provider, prompt, systemInstruction) {
               <div class="flex items-center font-semibold bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-sm">
                 <i data-lucide="calendar" class="w-4 h-4 mr-2 ${theme.icon}"></i> ${escapeHtml(article.source_date || '-')}
               </div>
-              ${providerName ? `<div class="flex items-center font-semibold bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-3 py-2 rounded-xl shadow-sm">
-                <i data-lucide="cpu" class="w-4 h-4 mr-2"></i> ${escapeHtml(providerName)}
+              ${modelName ? `<div class="flex items-center font-semibold bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-3 py-2 rounded-xl shadow-sm">
+                <i data-lucide="cpu" class="w-4 h-4 mr-2"></i> ${escapeHtml(modelName)}
               </div>` : ''}
             </div>
             <div class="px-6 py-2 bg-amber-50 dark:bg-amber-900/20 border-t border-amber-100 dark:border-amber-900/50">
               <p class="text-[10px] text-amber-700 dark:text-amber-300 font-semibold text-center">
-                ⚠️ Artikel ini dibuat dengan bantuan AI. Fakta dan kutipan telah diverifikasi terhadap sumber asli.
+                ⚠️ Artikel ini dibuat dengan bantuan AI. Fakta dan kutipan wajib diverifikasi sebelum publikasi.
               </p>
             </div>
           </div>
@@ -1110,7 +1102,8 @@ async function callProvider(provider, prompt, systemInstruction) {
     async function handleCopy(index, btnElement) {
       const a = globalArticles[index];
       if (!a) return;
-      const ok = await copyToClipboard(`${a.title}\n\n${a.content}`);
+      const text = `${a.title}\n\n${a.content}${a.meta_title ? `\n\n--- SEO ---\nSEO Title: ${a.meta_title}\nSEO Description: ${a.meta_description}` : ''}`;
+      const ok = await copyToClipboard(text);
       if (!ok) { showToast('Gagal menyalin', 'error'); return; }
       const ic = btnElement.querySelector('.icon-copy');
       const ck = btnElement.querySelector('.icon-check');
@@ -1129,10 +1122,10 @@ async function callProvider(provider, prompt, systemInstruction) {
       const date = new Date().toISOString().slice(0, 10);
       let content, mime, ext;
       if (format === 'doc') {
-        content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7;color:#1e293b}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{color:#1e293b;margin-top:40px}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}.disclaimer{background:#fef3c7;padding:8px;font-size:12px;border-left:3px solid #f59e0b}</style></head><body><h1>JURNALIS PRO - Kumpulan Berita</h1><p class="meta">Diekspor: ${new Date().toLocaleString('id-ID')}</p>${globalArticles.map((a, i) => `<h2>${i + 1}. ${escapeHtml(a.title)}</h2><p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}<p class="disclaimer">Artikel ini dibuat dengan bantuan AI. Fakta dan kutipan telah diverifikasi terhadap sumber asli.</p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:30px 0">`).join('')}</body></html>`;
+        content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7;color:#1e293b}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{color:#1e293b;margin-top:40px}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}.disclaimer{background:#fef3c7;padding:8px;font-size:12px;border-left:3px solid #f59e0b}</style></head><body><h1>JURNALIS PRO - Kumpulan Berita</h1><p class="meta">Diekspor: ${new Date().toLocaleString('id-ID')}</p>${globalArticles.map((a, i) => `<h2>${i + 1}. ${escapeHtml(a.title)}</h2><p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>${a.meta_title ? `<p class="meta">SEO Title: ${escapeHtml(a.meta_title)}<br>SEO Desc: ${escapeHtml(a.meta_description || '')}</p>` : ''}${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}<p class="disclaimer">Artikel ini dibuat dengan bantuan AI. Fakta dan kutipan wajib diverifikasi sebelum publikasi.</p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:30px 0">`).join('')}</body></html>`;
         mime = 'application/msword'; ext = 'doc';
       } else {
-        content = globalArticles.map((a, i) => `ARTIKEL ${i + 1}\n${'='.repeat(60)}\nJudul: ${a.title}\nAngle: ${a.angle}\nSEO Title: ${a.meta_title || '-'}\nSEO Desc: ${a.meta_description || '-'}\nSumber: ${a.source_name} (${a.source_date})\n\n${a.content}\n\n⚠️ Artikel ini dibuat dengan bantuan AI.\n\n`).join('\n');
+        content = globalArticles.map((a, i) => `ARTIKEL ${i + 1}\n${'='.repeat(60)}\nJudul: ${a.title}\nAngle: ${a.angle}\nSEO Title: ${a.meta_title || '-'}\nSEO Desc: ${a.meta_description || '-'}\nSumber: ${a.source_name} (${a.source_date})\n\n${a.content}\n\n⚠️ Artikel ini dibuat dengan bantuan AI. Fakta dan kutipan wajib diverifikasi sebelum publikasi.\n\n`).join('\n');
         mime = 'text/plain'; ext = 'txt';
       }
       const blob = new Blob([content], { type: mime + ';charset=utf-8' });
@@ -1146,7 +1139,7 @@ async function callProvider(provider, prompt, systemInstruction) {
     function printAll() {
       if (!globalArticles.length) return;
       const win = window.open('', '_blank');
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{margin-top:40px;page-break-after:avoid}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}.disclaimer{background:#fef3c7;padding:8px;font-size:12px;border-left:3px solid #f59e0b}@media print{h2{page-break-before:always}h2:first-of-type{page-break-before:auto}}</style></head><body><h1>JURNALIS PRO</h1><p class="meta">Dicetak: ${new Date().toLocaleString('id-ID')}</p>${globalArticles.map((a, i) => `<h2>${i + 1}. ${escapeHtml(a.title)}</h2><p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}<p class="disclaimer">Artikel ini dibuat dengan bantuan AI.</p>`).join('')}</body></html>`);
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{margin-top:40px;page-break-after:avoid}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}.disclaimer{background:#fef3c7;padding:8px;font-size:12px;border-left:3px solid #f59e0b}@media print{h2{page-break-before:always}h2:first-of-type{page-break-before:auto}}</style></head><body><h1>JURNALIS PRO</h1><p class="meta">Dicetak: ${new Date().toLocaleString('id-ID')}</p>${globalArticles.map((a, i) => `<h2>${i + 1}. ${escapeHtml(a.title)}</h2><p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>${a.meta_title ? `<p class="meta">SEO: ${escapeHtml(a.meta_title)}</p>` : ''}${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}<p class="disclaimer">Artikel ini dibuat dengan bantuan AI.</p>`).join('')}</body></html>`);
       win.document.close();
       setTimeout(() => win.print(), 400);
     }
@@ -1173,10 +1166,10 @@ async function callProvider(provider, prompt, systemInstruction) {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generateNews(); }
     });
 
-    updateProviderIndicators();
+    updateApiStatusIndicator();
 
-    console.log('%cJURNALIS PRO v4.0', 'color:#7c3aed;font-size:20px;font-weight:bold');
-    console.log('%cProvider: Groq → Cerebras → SambaNova (user)', 'color:#64748b');
+    console.log('%cJURNALIS PRO v5.0', 'color:#7c3aed;font-size:20px;font-weight:bold');
+    console.log('%cGemini murni + Auto-discovery + SEO + Terjemahan otomatis', 'color:#64748b');
   </script>
 </body>
 </html>
