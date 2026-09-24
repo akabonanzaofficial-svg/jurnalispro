@@ -25,7 +25,7 @@
         }
       }
     }
-  </script>
+  </>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -769,91 +769,49 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     // FETCH NEWS FROM RSS
     // ============================================================
     async function fetchNewsFromRSS(topic) {
-      const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic)}+when:3d&hl=id-ID&gl=ID&ceid=ID:id`;
-      
-      const proxies = [
-        `https://corsproxy.io/?url=${encodeURIComponent(rssUrl)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`,
-        `https://thingproxy.freeboard.io/fetch/${rssUrl}`
-      ];
-      
-      for (const proxyUrl of proxies) {
-        try {
-          const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-          if (!res.ok) continue;
-          
-          const text = await res.text();
-          if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) continue;
-          
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(text, 'text/xml');
-          if (xml.querySelector('parsererror')) continue;
-          
-          const items = Array.from(xml.querySelectorAll('item')).slice(0, 5);
-          if (items.length === 0) continue;
-          
-          console.log('RSS berhasil via:', proxyUrl.substring(0, 40));
-          return items.map(item => ({
-            title: item.querySelector('title')?.textContent || '',
-            link: item.querySelector('link')?.textContent || '',
-            pubDate: item.querySelector('pubDate')?.textContent || '',
-            source: item.querySelector('source')?.textContent || 'Google News',
-            description: item.querySelector('description')?.textContent || ''
-          }));
-        } catch (e) {
-          console.warn('Proxy gagal:', e.message);
-          continue;
-        }
-      }
-      
-      console.warn('Semua proxy RSS gagal — lanjut tanpa berita terbaru');
-      return [];
-    }
+  const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzVrNo-bSK3mkFYexeTXngUsDOmEPCG1sQ5v3SJoTMBnp_EXPq76LiflT6QA9ROVNUD/exec';
+  const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic)}+when:3d&hl=id-ID&gl=ID&ceid=ID:id`;
+  
+  try {
+    const res = await fetch(GAS_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'rss', url: rssUrl })
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch (e) {
+    console.warn('RSS via GAS gagal:', e.message);
+    return [];
+  }
+}
 
-    // ============================================================
-    // CALL PROVIDER
-    // ============================================================
-    async function callProvider(provider, prompt, systemInstruction) {
-  // ⚠️ GANTI dengan URL Web App GAS Anda dari Langkah 3
-  const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxx/exec';
-
-  const requestBody = {
-    model: provider.model,
-    messages: [
-      { role: 'system', content: systemInstruction },
-      { role: 'user', content: prompt }
-    ],
-    temperature: 0.7,
-    max_tokens: 4000
-  };
-
+async function callProvider(provider, prompt, systemInstruction) {
+  const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzVrNo-bSK3mkFYexeTXngUsDOmEPCG1sQ5v3SJoTMBnp_EXPq76LiflT6QA9ROVNUD/exec';
+  
   const response = await fetch(GAS_PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      provider: provider.id, // 'groq', 'cerebras', 'sambanova'
-      body: requestBody
+      action: 'ai',
+      provider: provider.id,
+      body: {
+        model: provider.model,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 4000
+      }
     })
   });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    const err = new Error(`GAS Proxy Error: ${response.status}`);
-    err.status = response.status;
-    err.detail = errText;
-    throw err;
-  }
-
-  const data = await response.json();
   
-  // Tangani error dari GAS
-  if (data.error) {
-    const err = new Error(data.error);
-    err.status = 500;
-    throw err;
-  }
-
-  // Ambil teks AI (format OpenAI-compatible)
+  if (!response.ok) throw new Error(`GAS Error: ${response.status}`);
+  const data = await response.json();
+  if (data.error) throw new Error(data.error);
+  
   const text = data.choices?.[0]?.message?.content || '';
   return { text, raw: data };
 }
