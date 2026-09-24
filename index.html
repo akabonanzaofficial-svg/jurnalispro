@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JURNALIS PRO - AI Newsroom</title>
-  <meta name="description" content="Generator berita AI profesional dengan Google Gemini - JURNALIS PRO">
+  <meta name="description" content="Generator berita AI profesional - JURNALIS PRO">
   <meta name="theme-color" content="#7c3aed">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -58,8 +58,12 @@
   </style>
 </head>
 <body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans relative pb-24 overflow-x-hidden selection:bg-violet-200 selection:text-violet-900 transition-colors duration-300">
+
   <div class="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-br from-violet-400 via-fuchsia-400 to-orange-400 opacity-15 dark:opacity-10 blur-[100px] -z-10 pointer-events-none animate-pulse duration-1000"></div>
+
   <div id="toast-container" class="fixed top-20 right-4 z-[200] space-y-2 pointer-events-none"></div>
+
+  <!-- Header -->
   <header class="sticky top-0 z-50 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 shadow-lg shadow-violet-200/50 dark:shadow-violet-900/30 border-b border-white/10 overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
     <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3 relative z-10">
@@ -77,13 +81,29 @@
         <button onclick="toggleHistoryModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner transition-colors" title="Riwayat" aria-label="Riwayat">
           <i data-lucide="history" class="w-4 h-4 text-white"></i>
         </button>
-        <button onclick="toggleApiModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner transition-colors" title="Pengaturan API Key" aria-label="Pengaturan API Key">
+        <button onclick="toggleApiModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner transition-colors relative" title="Pengaturan API Key" aria-label="Pengaturan API Key">
           <i data-lucide="key" class="w-4 h-4 text-white"></i>
+          <span id="api-status-dot" class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white/80 hidden"></span>
         </button>
       </div>
     </div>
   </header>
+
+  <!-- Banner Peringatan API Key Belum Diisi -->
+  <div id="api-warning-banner" class="hidden bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-900/50">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
+      <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0"></i>
+      <p class="text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 flex-1">
+        Anda belum mengatur API Key. Klik tombol <b>🔑</b> di atas untuk memasukkan Gemini API Key Anda sendiri.
+      </p>
+      <button onclick="toggleApiModal()" class="text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg transition-colors flex-shrink-0">
+        Atur Sekarang
+      </button>
+    </div>
+  </div>
+
   <main class="max-w-2xl mx-auto px-4 sm:px-5 pt-6 space-y-6">
+
     <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white dark:border-slate-800">
       <div class="flex bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-[1.5rem] mb-4 relative">
         <button id="tab-search" onclick="setMode('search')" class="flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm bg-white dark:bg-slate-700 text-violet-700 dark:text-violet-300 shadow-sm">
@@ -93,14 +113,17 @@
           <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Liputan
         </button>
       </div>
+
       <div class="p-2 space-y-5">
         <div id="input-search-container" class="relative group">
           <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-violet-500"></i>
           <input type="text" id="input-search" onkeydown="if(event.key === 'Enter') generateNews()" placeholder="Ketik topik berita terkini..." class="w-full pl-14 pr-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-700 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 transition-all outline-none text-base text-slate-700 dark:text-slate-200 placeholder-slate-400 font-medium">
         </div>
+
         <div id="input-coverage-container" class="hidden">
           <textarea id="input-coverage" placeholder="Tempel catatan liputan, press release, atau poin rapat di sini..." class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-700 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 transition-all outline-none text-base text-slate-700 dark:text-slate-200 placeholder-slate-400 min-h-[160px] resize-y font-medium"></textarea>
         </div>
+
         <div class="pt-1">
           <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 block pl-2">
             Pilih Gaya Penulisan
@@ -124,6 +147,7 @@
             </button>
           </div>
         </div>
+
         <details class="group">
           <summary class="cursor-pointer flex items-center text-xs font-bold text-slate-400 uppercase tracking-widest pl-2 hover:text-violet-500 transition-colors select-none">
             <i data-lucide="settings-2" class="w-3.5 h-3.5 mr-1.5 group-open:rotate-90 transition-transform"></i>
@@ -152,6 +176,7 @@
             </div>
           </div>
         </details>
+
         <button id="btn-generate" onclick="generateNews()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white py-4 rounded-2xl font-bold transition-all transform active:scale-[0.98] shadow-xl shadow-violet-200/50 dark:shadow-violet-900/30 flex items-center justify-center disabled:opacity-70 disabled:active:scale-100 mt-2">
           <i data-lucide="sparkles" id="btn-icon-normal" class="w-5 h-5 mr-2"></i>
           <i data-lucide="loader-2" id="btn-icon-loading" class="w-5 h-5 mr-2 animate-spin hidden"></i>
@@ -159,10 +184,12 @@
         </button>
       </div>
     </div>
+
     <div id="error-container" class="hidden p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-[1.5rem] flex items-start border border-red-100 dark:border-red-900/50 transition-all duration-300">
       <i data-lucide="alert-circle" class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5"></i>
       <p id="error-message" class="font-semibold text-sm leading-relaxed"></p>
     </div>
+
     <div id="results-section" class="hidden space-y-6 pb-10 transition-all duration-700 opacity-0 translate-y-4">
       <div id="action-bar" class="hidden flex flex-wrap gap-2 items-center">
         <button onclick="exportAll('txt')" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 shadow-sm">
@@ -187,47 +214,85 @@
       <div id="articles-stack" class="space-y-6"></div>
     </div>
   </main>
+
   <button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="hidden fixed bottom-6 right-6 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl shadow-xl shadow-violet-300/50 dark:shadow-violet-900/50 items-center justify-center transition-all active:scale-95 z-40">
     <i data-lucide="arrow-up" class="w-5 h-5"></i>
   </button>
+
+  <!-- Modal API Key -->
   <div id="api-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300" onclick="if(event.target === this) toggleApiModal()">
-    <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-md transform scale-95 transition-transform duration-300" id="api-modal-content">
+    <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-md transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="api-modal-content">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
           <i data-lucide="key" class="w-5 h-5 mr-2 text-violet-600"></i>
-          Pengaturan API Key
+          API Key Saya
         </h3>
         <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" aria-label="Tutup">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
-      <div class="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
-        <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed font-medium">
-          <b>ℹ️ Mendukung 2 format API Key:</b><br>
-          • Format baru (2026): <code class="bg-violet-100 dark:bg-violet-900/50 px-1 rounded font-mono">AQ.xxxxx</code><br>
-          • Format lama: <code class="bg-violet-100 dark:bg-violet-900/50 px-1 rounded font-mono">AIzaSyxxxxx</code>
+
+      <!-- Info Penting -->
+      <div class="p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
+        <div class="flex items-start gap-2 mb-2">
+          <i data-lucide="info" class="w-4 h-4 text-violet-600 flex-shrink-0 mt-0.5"></i>
+          <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed font-bold">
+            Setiap pengguna wajib menggunakan API Key sendiri
+          </p>
+        </div>
+        <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed pl-6">
+          API Key disimpan <b>hanya di browser Anda</b> (localStorage) dan tidak pernah dikirim ke server kami.
+          Kuota gratis Gemini API adalah <b>milik Anda sendiri</b>, sehingga tidak akan bertabrakan dengan pengguna lain.
         </p>
       </div>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-        Kunci disimpan secara aman di <b>penyimpanan lokal browser Anda</b> dan tidak dikirim ke server manapun selain Google.
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-violet-600 hover:underline font-semibold inline-flex items-center mt-1">
-          Dapatkan API Key di Google AI Studio
-          <i data-lucide="external-link" class="w-3 h-3 ml-1"></i>
-        </a>
-      </p>
-      <div class="relative">
-        <input type="password" id="input-api-key" placeholder="Paste API Key (AQ.xxx atau AIzaSyxxx)" class="w-full p-4 pr-12 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 transition-all outline-none text-slate-700 dark:text-slate-200 font-mono text-sm mb-2">
-        <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 mt-[-4px] text-slate-400 hover:text-violet-600 p-1.5 rounded-lg transition-colors" title="Tampilkan/Sembunyikan" aria-label="Tampilkan API Key">
+
+      <!-- Cara Mendapatkan API Key -->
+      <details class="mb-4 group">
+        <summary class="cursor-pointer text-xs font-bold text-violet-600 hover:text-violet-700 flex items-center select-none">
+          <i data-lucide="help-circle" class="w-3.5 h-3.5 mr-1.5 group-open:rotate-90 transition-transform"></i>
+          Bagaimana cara mendapatkan API Key gratis?
+        </summary>
+        <ol class="mt-3 pl-5 space-y-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed list-decimal">
+          <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-violet-600 hover:underline font-semibold">Google AI Studio <i data-lucide="external-link" class="w-3 h-3 inline"></i></a></li>
+          <li>Login dengan akun Google Anda</li>
+          <li>Klik tombol <b>"Create API Key"</b></li>
+          <li>Salin kunci yang muncul (dimulai dengan <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded font-mono">AIza...</code> atau <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded font-mono">AQ...</code>)</li>
+          <li>Tempel di kolom di bawah ini</li>
+        </ol>
+      </details>
+
+      <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2 pl-1">
+        Gemini API Key Anda
+      </label>
+
+      <div class="relative mb-2">
+        <input type="password" id="input-api-key" placeholder="Tempel API Key di sini..." class="w-full p-4 pr-12 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 transition-all outline-none text-slate-700 dark:text-slate-200 font-mono text-sm" autocomplete="off" spellcheck="false">
+        <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 p-1.5 rounded-lg transition-colors" title="Tampilkan/Sembunyikan" aria-label="Tampilkan API Key">
           <i data-lucide="eye" id="api-key-eye-icon" class="w-4 h-4"></i>
         </button>
       </div>
-      <p id="api-key-status" class="text-xs font-semibold mb-4 pl-1"></p>
+      <p id="api-key-status" class="text-xs font-semibold mb-4 pl-1 min-h-[16px]"></p>
+
+      <!-- Tombol Aksi -->
+      <div class="flex gap-2 mb-3">
+        <button onclick="testApiKey()" id="btn-test-key" class="flex-1 py-3 rounded-xl font-bold text-sm text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-900/50 transition-colors flex items-center justify-center">
+          <i data-lucide="flask-conical" class="w-4 h-4 mr-1.5"></i>
+          <span id="btn-test-text">Test Koneksi</span>
+        </button>
+        <button onclick="deleteApiKey()" class="flex-1 py-3 rounded-xl font-bold text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-900/50 transition-colors flex items-center justify-center">
+          <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i>
+          Hapus Key
+        </button>
+      </div>
+
       <div class="flex gap-3">
         <button onclick="toggleApiModal()" class="flex-1 py-3.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Batal</button>
         <button onclick="saveApiKey()" class="flex-1 py-3.5 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors">Simpan Key</button>
       </div>
     </div>
   </div>
+
+  <!-- Modal History -->
   <div id="history-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300" onclick="if(event.target === this) toggleHistoryModal()">
     <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col transform scale-95 transition-transform duration-300" id="history-modal-content">
       <div class="flex justify-between items-center mb-4">
@@ -245,6 +310,7 @@
       <div id="history-list" class="overflow-y-auto space-y-2 pr-1"></div>
     </div>
   </div>
+
   <script>
     // ============================================================
     // INITIALIZATION
@@ -262,10 +328,9 @@
     let currentRequestId = 0;
 
     const MAX_HISTORY = 20;
+    const API_KEY_STORAGE = 'jurnalis_gemini_api_key';
 
-    // ============================================================
-    // API KEY VALIDATION (Support format baru AQ. & lama AIzaSy)
-    // ============================================================
+    // Support format baru AQ. dan format lama AIzaSy
     const API_KEY_REGEX = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/;
 
     function detectKeyFormat(key) {
@@ -307,6 +372,27 @@
     initTheme();
 
     // ============================================================
+    // API STATUS INDICATOR
+    // ============================================================
+    function updateApiStatusIndicator() {
+      const dot = document.getElementById('api-status-dot');
+      const banner = document.getElementById('api-warning-banner');
+      const key = localStorage.getItem(API_KEY_STORAGE);
+      if (key && API_KEY_REGEX.test(key)) {
+        dot.classList.add('hidden');
+        banner.classList.add('hidden');
+      } else if (key) {
+        dot.classList.remove('hidden');
+        dot.className = 'absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-500 border-2 border-white/80';
+        banner.classList.add('hidden');
+      } else {
+        dot.classList.remove('hidden');
+        dot.className = 'absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white/80';
+        banner.classList.remove('hidden');
+      }
+    }
+
+    // ============================================================
     // TOAST NOTIFICATIONS
     // ============================================================
     function showToast(message, type = 'info', duration = 3000) {
@@ -344,7 +430,7 @@
       const content = document.getElementById('api-modal-content');
       if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
-        const stored = localStorage.getItem('gemini_api_key') || '';
+        const stored = localStorage.getItem(API_KEY_STORAGE) || '';
         document.getElementById('input-api-key').value = stored;
         validateApiKeyInput();
         setTimeout(() => {
@@ -378,30 +464,30 @@
       const format = detectKeyFormat(key);
       if (!key) {
         statusEl.textContent = '';
-        statusEl.className = 'text-xs font-semibold mb-4 pl-1';
+        statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px]';
         return;
       }
       if (API_KEY_REGEX.test(key)) {
         if (format === 'new') {
-          statusEl.innerHTML = '✓ <b>Format baru (AQ.)</b> valid — siap digunakan';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 text-emerald-600 dark:text-emerald-400';
+          statusEl.innerHTML = '✓ Format baru (AQ.) valid';
+          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-emerald-600 dark:text-emerald-400';
         } else if (format === 'old') {
-          statusEl.innerHTML = '✓ <b>Format lama (AIzaSy)</b> valid — siap digunakan';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 text-emerald-600 dark:text-emerald-400';
+          statusEl.innerHTML = '✓ Format lama (AIzaSy) valid';
+          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-emerald-600 dark:text-emerald-400';
         } else {
           statusEl.innerHTML = '✓ Format valid';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 text-emerald-600 dark:text-emerald-400';
+          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-emerald-600 dark:text-emerald-400';
         }
       } else {
         if (format === 'new') {
-          statusEl.innerHTML = '⚠ Awalan <b>AQ.</b> dikenali tapi panjang tidak wajar. Minimal 20 karakter setelah titik.';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 text-amber-600 dark:text-amber-400';
+          statusEl.innerHTML = '⚠ Awalan <b>AQ.</b> dikenali tapi panjang tidak wajar';
+          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-amber-600 dark:text-amber-400';
         } else if (format === 'old') {
-          statusEl.innerHTML = '⚠ Awalan <b>AIzaSy</b> dikenali tapi panjang tidak sesuai (harus 39 karakter total).';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 text-amber-600 dark:text-amber-400';
+          statusEl.innerHTML = '⚠ Awalan <b>AIzaSy</b> dikenali tapi panjang tidak sesuai';
+          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-amber-600 dark:text-amber-400';
         } else {
-          statusEl.innerHTML = '⚠ Format tidak dikenal. Harus diawali <b>AQ.</b> (format baru) atau <b>AIzaSy</b> (format lama).';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 text-red-600 dark:text-red-400';
+          statusEl.innerHTML = '⚠ Format tidak dikenal. Harus <b>AQ.</b> atau <b>AIzaSy</b>';
+          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-red-600 dark:text-red-400';
         }
       }
     }
@@ -409,22 +495,76 @@
 
     function saveApiKey() {
       const key = document.getElementById('input-api-key').value.trim();
-      const format = detectKeyFormat(key);
       if (!key) {
-        localStorage.removeItem('gemini_api_key');
-        toggleApiModal();
-        showToast('API Key dihapus', 'info');
+        showToast('API Key tidak boleh kosong', 'warning');
         return;
       }
       if (!API_KEY_REGEX.test(key)) {
-        showToast('Format API Key tidak valid. Tetap disimpan, tapi kemungkinan besar gagal.', 'warning', 5000);
-      } else {
-        const label = format === 'new' ? 'format baru (AQ.)' : 'format lama (AIzaSy)';
-        showToast(`API Key ${label} berhasil disimpan`, 'success');
+        showToast('Format API Key tidak valid. Periksa kembali.', 'warning', 4000);
+        return;
       }
-      localStorage.setItem('gemini_api_key', key);
+      localStorage.setItem(API_KEY_STORAGE, key);
+      updateApiStatusIndicator();
       toggleApiModal();
       hideError();
+      showToast('API Key berhasil disimpan di browser Anda', 'success');
+    }
+
+    function deleteApiKey() {
+      if (!confirm('Hapus API Key dari browser ini?')) return;
+      localStorage.removeItem(API_KEY_STORAGE);
+      document.getElementById('input-api-key').value = '';
+      validateApiKeyInput();
+      updateApiStatusIndicator();
+      showToast('API Key dihapus', 'info');
+    }
+
+    async function testApiKey() {
+      const key = document.getElementById('input-api-key').value.trim();
+      if (!key) {
+        showToast('Masukkan API Key terlebih dahulu', 'warning');
+        return;
+      }
+      if (!API_KEY_REGEX.test(key)) {
+        showToast('Format API Key tidak valid', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-test-key');
+      const text = document.getElementById('btn-test-text');
+      const original = text.textContent;
+      text.textContent = 'Menguji...';
+      btn.disabled = true;
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': key
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Halo' }] }]
+          })
+        });
+
+        if (response.ok) {
+          showToast('✓ API Key valid dan berfungsi!', 'success', 4000);
+        } else if (response.status === 429) {
+          showToast('API Key valid, tapi kuota sedang penuh. Tunggu sebentar.', 'warning', 5000);
+        } else if (response.status === 400 || response.status === 403) {
+          const err = await response.json().catch(() => ({}));
+          showToast('API Key ditolak: ' + (err?.error?.message || 'Tidak valid'), 'error', 5000);
+        } else {
+          showToast('Respons tidak terduga: HTTP ' + response.status, 'error', 4000);
+        }
+      } catch (err) {
+        showToast('Gagal terhubung: ' + err.message, 'error', 4000);
+      } finally {
+        text.textContent = original;
+        btn.disabled = false;
+      }
     }
 
     // ============================================================
@@ -618,34 +758,47 @@
     }
 
     // ============================================================
-    // GENERATE NEWS (UPDATED - model gemini-3.6-flash)
+    // GENERATE NEWS
     // ============================================================
     async function generateNews() {
       if (isGenerating) return;
+
       const topic = currentMode === 'search'
         ? document.getElementById('input-search').value
         : document.getElementById('input-coverage').value;
+
       if (!topic.trim()) {
         showError('Silakan masukkan topik berita atau catatan liputan terlebih dahulu.');
         showToast('Input masih kosong', 'warning');
         return;
       }
-      const activeApiKey = localStorage.getItem('gemini_api_key');
+
+      // ⚠️ Ambil API Key dari localStorage USER, bukan dari developer
+      const activeApiKey = localStorage.getItem(API_KEY_STORAGE);
       if (!activeApiKey) {
-        showError('<b>API Key tidak ditemukan!</b><br>Klik ikon <b>Kunci</b> di pojok kanan atas untuk memasukkan Gemini API Key Anda.');
+        showError('<b>API Key belum diatur!</b><br>Klik ikon <b>🔑 Kunci</b> di pojok kanan atas untuk memasukkan Gemini API Key Anda sendiri.<br><br>Setiap user wajib menggunakan API Key-nya sendiri agar kuota tidak bertabrakan.');
         showToast('API Key belum diatur', 'error');
+        toggleApiModal();
         return;
       }
+
+      if (!API_KEY_REGEX.test(activeApiKey)) {
+        showError('<b>Format API Key tidak valid.</b><br>Silakan periksa kembali di menu 🔑 Kunci.');
+        showToast('Format API Key tidak valid', 'error');
+        return;
+      }
+
       const requestId = ++currentRequestId;
       setLoading(true);
       hideError();
       hideResults();
+
       const articleCount = parseInt(document.getElementById('input-count').value) || 1;
       const lengthOption = document.getElementById('input-length').value;
       const extraInstruction = document.getElementById('input-extra').value.trim();
 
-      // ⚠️ MODEL DIPERBARUI KE gemini-3.6-flash
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`;
+      // Gunakan gemini-2.5-flash-lite yang lebih hemat kuota
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`;
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
       let styleInstruction = "";
@@ -661,17 +814,22 @@
         medium: "Setiap artikel terdiri dari tepat 5 paragraf yang lengkap dan komprehensif.",
         long: "Setiap artikel terdiri dari minimal 8 paragraf yang sangat mendalam dan detail.",
       }[lengthOption] || "Setiap artikel terdiri dari tepat 5 paragraf.";
+
       const extraText = extraInstruction ? `\n\nINSTRUKSI TAMBAHAN DARI USER:\n${extraInstruction}` : '';
+
       const jsonFormatInstruction = `\n\nOUTPUT FORMAT WAJIB (JSON valid murni, TANPA teks pengantar/penutup/markdown):\n{\n  "articles": [\n    {\n      "title": "Judul Artikel",\n      "angle": "Sudut Pandang",\n      "content": "Isi berita. Pisahkan paragraf dengan \\n\\n",\n      "source_name": "Nama Media",\n      "source_date": "Tanggal Berita"\n    }\n  ]\n}`;
+
       let promptText = "";
       let sysInstruct = "";
+
       if (currentMode === 'search') {
-        promptText = `Tanggal Hari Ini: ${currentDate}\nTopik/Referensi: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan alat pencarian (Google Search) untuk mencari BERITA TERBARU terkait topik tersebut.\n2. JANGAN menggunakan data lama. Semua berita harus relevan dengan kejadian di sekitar tanggal ${currentDate}.\n\nBerdasarkan hasil pencarian paling mutakhir tersebut, buat ${articleCount} artikel berita. Syarat:\n1. Sepenuhnya berdasarkan fakta terbaru dari hasil pencarian hari ini.\n2. ${styleInstruction}\n3. ${lengthInstruction}\n4. Setiap artikel WAJIB memiliki "angle" yang berbeda.\n5. Pisahkan antar paragraf dengan baris baru ganda (\\n\\n).\n6. Wajib cantumkan nama sumber media utama dan tanggal terbit berita referensi ke kolom source_name dan source_date.${extraText}${jsonFormatInstruction}`;
+        promptText = `Tanggal Hari Ini: ${currentDate}\nTopik/Referensi: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan alat pencarian (Google Search) untuk mencari BERITA TERBARU terkait topik tersebut.\n2. JANGAN menggunakan data lama. Semua berita harus relevan dengan kejadian di sekitar tanggal ${currentDate}. Maksimal 3 hari ke belakang.\n\nBerdasarkan hasil pencarian paling mutakhir tersebut, buat ${articleCount} artikel berita. Syarat:\n1. Sepenuhnya berdasarkan fakta terbaru dari hasil pencarian hari ini.\n2. ${styleInstruction}\n3. ${lengthInstruction}\n4. Setiap artikel WAJIB memiliki "angle" yang berbeda.\n5. Pisahkan antar paragraf dengan baris baru ganda (\\n\\n).\n6. Wajib cantumkan nama sumber media utama dan tanggal terbit berita referensi ke kolom source_name dan source_date.${extraText}${jsonFormatInstruction}`;
         sysInstruct = `Kamu adalah jurnalis investigasi kelas dunia. Tanggal hari ini: ${currentDate}. Dilarang mengarang berita atau memakai data lampau. WAJIB gunakan Google Search untuk informasi paling mutakhir.`;
       } else {
         promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan/Resume Kegiatan Mentah:\n${topic}\n\nINSTRUKSI: Kembangkan catatan di atas menjadi ${articleCount} artikel berita utuh yang siap terbit. Syarat:\n1. Kembangkan fakta dari catatan menjadi alur berita yang mengalir natural.\n2. ${styleInstruction}\n3. ${lengthInstruction}\n4. Setiap artikel WAJIB memiliki "angle" yang berbeda.\n5. FORMATTING: Pisahkan setiap paragraf dengan baris baru ganda (\\n\\n).\n6. source_name: "Catatan Liputan / Rilis Pers", source_date: ${currentDate} atau sesuai catatan.${extraText}${jsonFormatInstruction}`;
         sysInstruct = `Kamu adalah editor jurnalis senior yang ahli mengolah catatan liputan mentah menjadi berita profesional. Tanggal hari ini: ${currentDate}.`;
       }
+
       const payload = {
         contents: [{ parts: [{ text: promptText }] }],
         systemInstruction: { parts: [{ text: sysInstruct }] },
@@ -679,9 +837,11 @@
       if (currentMode === 'search') {
         payload.tools = [{ "google_search": {} }];
       }
+
       const delays = [1000, 2000, 4000, 8000, 16000];
       let success = false;
       let lastError = null;
+
       for (let i = 0; i <= 5; i++) {
         if (requestId !== currentRequestId) return;
         try {
@@ -693,28 +853,34 @@
             },
             body: JSON.stringify(payload)
           });
+
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             const errorMessage = errorData?.error?.message || 'Tidak diketahui';
             console.error("API Error:", errorData);
-            if (response.status === 400 || response.status === 403 || response.status === 404) {
-              throw new Error(`<b>Akses Ditolak (Status: ${response.status})</b><br>Pesan: <i>${errorMessage}</i><br><br>Pastikan API Key valid, aktif, dan memiliki akses ke Gemini API.`);
-            }
+
             if (response.status === 429) {
-              throw new Error(`<b>Rate Limit (429)</b><br>Terlalu banyak permintaan. Tunggu beberapa saat lalu coba lagi.`);
+              throw new Error(`<b>Kuota API Key Anda Habis (429)</b><br>Anda telah mencapai batas permintaan Gemini API.<br><br><b>Solusi:</b><br>• Tunggu 1-2 menit jika limit per menit<br>• Tunggu hingga besok jika limit harian<br>• Gunakan API Key dari akun Google lain<br><br><i>Pesan asli: ${errorMessage}</i>`);
+            }
+            if (response.status === 400 || response.status === 403 || response.status === 404) {
+              throw new Error(`<b>API Key Ditolak (Status: ${response.status})</b><br>Pesan: <i>${errorMessage}</i><br><br>Pastikan API Key valid dan aktif. Coba klik tombol <b>Test Koneksi</b> di menu 🔑.`);
             }
             throw new Error(`Gagal menghubungi server (${response.status}): ${errorMessage}`);
           }
+
           const data = await response.json();
           let textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (!textResponse) throw new Error("Format respons tidak sesuai dari AI.");
+
           const parsedData = extractJSON(textResponse);
           const rawSources = (data.candidates?.[0]?.groundingMetadata?.groundingAttributions || [])
             .map(a => ({ uri: a.web?.uri, title: a.web?.title }))
             .filter(s => s.uri && s.title);
           const uniqueSources = Array.from(new Map(rawSources.map(item => [item.uri, item])).values());
+
           const articles = Array.isArray(parsedData?.articles) ? parsedData.articles : [];
           if (articles.length === 0) throw new Error("AI tidak mengembalikan artikel apapun. Coba lagi.");
+
           renderResults(articles, uniqueSources);
           saveHistory({
             timestamp: Date.now(),
@@ -729,13 +895,15 @@
           });
           success = true;
           break;
+
         } catch (err) {
           lastError = err;
-          const fatal = err.message.includes("Akses Ditolak") || err.message.includes("Rate Limit") || err.message.includes("Format respons") || err.message.includes("tidak mengembalikan");
+          const fatal = err.message.includes("Kuota API Key") || err.message.includes("API Key Ditolak") || err.message.includes("Format respons") || err.message.includes("tidak mengembalikan");
           if (i === 5 || fatal) break;
           await new Promise(r => setTimeout(r, delays[i]));
         }
       }
+
       if (requestId === currentRequestId) {
         setLoading(false);
         if (!success && lastError) {
@@ -748,7 +916,7 @@
     }
 
     // ============================================================
-    // JSON EXTRACTION (robust)
+    // JSON EXTRACTION
     // ============================================================
     function extractJSON(text) {
       if (!text) throw new Error("Respons kosong dari AI.");
@@ -775,6 +943,7 @@
       const sourcesList = document.getElementById('sources-list');
       const articlesStack = document.getElementById('articles-stack');
       const actionBar = document.getElementById('action-bar');
+
       if (sources && sources.length > 0) {
         sourcesList.innerHTML = sources.map((source) => `
           <a href="${escapeHtml(source.uri)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all px-4 py-2.5 rounded-[1rem] text-slate-600 dark:text-slate-300 shadow-sm whitespace-nowrap font-medium flex-shrink-0">
@@ -786,6 +955,7 @@
       } else {
         sourcesContainer.classList.add('hidden');
       }
+
       articlesStack.innerHTML = articles.map((article, index) => {
         const theme = angleThemes[index % angleThemes.length];
         const paragraphsHTML = String(article.content || '')
@@ -826,6 +996,7 @@
           </div>
         `;
       }).join('');
+
       actionBar.classList.remove('hidden');
       lucide.createIcons();
       resultsSection.classList.remove('hidden');
@@ -939,13 +1110,14 @@
     }
 
     // ============================================================
-    // REGENERATE SINGLE ARTICLE (UPDATED - model gemini-3.6-flash)
+    // REGENERATE SINGLE ARTICLE
     // ============================================================
     async function regenerateArticle(index) {
       const article = globalArticles[index];
       if (!article || isGenerating) return;
-      const activeApiKey = localStorage.getItem('gemini_api_key');
+      const activeApiKey = localStorage.getItem(API_KEY_STORAGE);
       if (!activeApiKey) { showToast('API Key belum diatur', 'error'); return; }
+
       const contentEl = document.getElementById(`article-content-${index}`);
       const originalHTML = contentEl.innerHTML;
       contentEl.innerHTML = `
@@ -958,9 +1130,7 @@
       `;
       showToast('Regenerate artikel...', 'info', 2000);
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-      // ⚠️ MODEL DIPERBARUI KE gemini-3.6-flash
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`;
 
       const prompt = `Tanggal: ${currentDate}\nTulis ULANG artikel berita berikut dengan sudut pandang (angle) yang SAMA namun gaya bahasa, struktur kalimat, dan pemilihan kata yang BERBEDA. Pertahankan fakta dan informasi utama.\n\nJudul Lama: ${article.title}\nAngle: ${article.angle}\nIsi Lama:\n${article.content}\n\nOUTPUT JSON valid murni:\n{\n  "article": {\n    "title": "Judul Baru",\n    "angle": "${article.angle}",\n    "content": "Isi baru minimal 5 paragraf, pisahkan dengan \\n\\n",\n    "source_name": "${article.source_name}",\n    "source_date": "${article.source_date}"\n  }\n}`;
       try {
@@ -979,7 +1149,10 @@
           },
           body: JSON.stringify(requestBody)
         });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+          if (response.status === 429) throw new Error('Kuota API Key Anda habis');
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const parsed = extractJSON(text);
@@ -1028,8 +1201,12 @@
         generateNews();
       }
     });
+
+    // Cek status API Key saat halaman dimuat
+    updateApiStatusIndicator();
+
     console.log('%cJURNALIS PRO', 'color:#7c3aed;font-size:20px;font-weight:bold');
-    console.log('%cShortcuts: Ctrl+Enter = Generate | Esc = Tutup Modal', 'color:#64748b');
+    console.log('%cSetiap user memakai API Key sendiri | Ctrl+Enter = Generate', 'color:#64748b');
   </script>
 </body>
 </html>
