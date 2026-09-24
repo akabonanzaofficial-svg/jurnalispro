@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JURNALIS PRO - AI Newsroom</title>
-  <meta name="description" content="Generator berita AI profesional - JURNALIS PRO">
+  <meta name="description" content="Generator berita AI profesional dengan multi-provider - JURNALIS PRO">
   <meta name="theme-color" content="#7c3aed">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -15,16 +15,11 @@
           animation: {
             'spin-slow': 'spin 3s linear infinite',
             'slide-up': 'slideUp 0.4s ease-out',
-            'fade-in': 'fadeIn 0.3s ease-out',
           },
           keyframes: {
             slideUp: {
               '0%': { opacity: '0', transform: 'translateY(16px)' },
               '100%': { opacity: '1', transform: 'translateY(0)' },
-            },
-            fadeIn: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' },
             }
           }
         }
@@ -57,17 +52,16 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans relative pb-24 overflow-x-hidden selection:bg-violet-200 selection:text-violet-900 transition-colors duration-300">
+<body class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 font-sans relative pb-24 overflow-x-hidden transition-colors duration-300">
 
-  <div class="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-br from-violet-400 via-fuchsia-400 to-orange-400 opacity-15 dark:opacity-10 blur-[100px] -z-10 pointer-events-none animate-pulse duration-1000"></div>
+  <div class="fixed top-0 left-0 w-full h-[500px] bg-gradient-to-br from-violet-400 via-fuchsia-400 to-orange-400 opacity-15 dark:opacity-10 blur-[100px] -z-10 pointer-events-none"></div>
 
   <div id="toast-container" class="fixed top-20 right-4 z-[200] space-y-2 pointer-events-none"></div>
 
-  <!-- Header -->
-  <header class="sticky top-0 z-50 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 shadow-lg shadow-violet-200/50 dark:shadow-violet-900/30 border-b border-white/10 overflow-hidden">
+  <header class="sticky top-0 z-50 bg-gradient-to-r from-violet-600 via-fuchsia-500 to-violet-600 shadow-lg border-b border-white/10 overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
     <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3 relative z-10">
-      <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner flex-shrink-0">
+      <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 flex-shrink-0">
         <i data-lucide="newspaper" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>
       </div>
       <div class="text-center flex-1 min-w-0">
@@ -75,73 +69,70 @@
         <p class="text-[9px] sm:text-[10px] font-bold text-violet-100 uppercase tracking-widest mt-0.5 truncate">AI Newsroom</p>
       </div>
       <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-        <button onclick="toggleTheme()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner transition-colors" title="Ganti Tema" aria-label="Ganti Tema">
+        <button onclick="toggleTheme()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors" title="Ganti Tema">
           <i data-lucide="moon" id="theme-icon" class="w-4 h-4 text-white"></i>
         </button>
-        <button onclick="toggleHistoryModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner transition-colors" title="Riwayat" aria-label="Riwayat">
+        <button onclick="toggleHistoryModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors" title="Riwayat">
           <i data-lucide="history" class="w-4 h-4 text-white"></i>
         </button>
-        <button onclick="toggleApiModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-inner transition-colors relative" title="Pengaturan API Key" aria-label="Pengaturan API Key">
-          <i data-lucide="key" class="w-4 h-4 text-white"></i>
-          <span id="api-status-dot" class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white/80 hidden"></span>
+        <button onclick="toggleApiModal()" class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 transition-colors relative" title="Pengaturan API">
+          <i data-lucide="settings" class="w-4 h-4 text-white"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Banner Peringatan API Key Belum Diisi -->
-  <div id="api-warning-banner" class="hidden bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-900/50">
-    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-      <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 flex-shrink-0"></i>
-      <p class="text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 flex-1">
-        Anda belum mengatur API Key. Klik tombol <b>🔑</b> di atas untuk memasukkan Gemini API Key Anda sendiri.
-      </p>
-      <button onclick="toggleApiModal()" class="text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg transition-colors flex-shrink-0">
-        Atur Sekarang
-      </button>
+  <div id="provider-status-banner" class="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-2xl mx-auto px-4 py-2 flex items-center gap-3 text-xs overflow-x-auto hide-scrollbar">
+      <span class="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">Provider Aktif:</span>
+      <div id="provider-indicators" class="flex gap-2"></div>
     </div>
   </div>
 
   <main class="max-w-2xl mx-auto px-4 sm:px-5 pt-6 space-y-6">
 
-    <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white dark:border-slate-800">
-      <div class="flex bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-[1.5rem] mb-4 relative">
+    <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-2 rounded-[2rem] shadow-lg border border-white dark:border-slate-800">
+      <div class="flex bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-[1.5rem] mb-4">
         <button id="tab-search" onclick="setMode('search')" class="flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm bg-white dark:bg-slate-700 text-violet-700 dark:text-violet-300 shadow-sm">
           <i data-lucide="search" class="w-4 h-4 mr-2"></i> Topik
         </button>
-        <button id="tab-coverage" onclick="setMode('coverage')" class="flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+        <button id="tab-coverage" onclick="setMode('coverage')" class="flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm text-slate-500 dark:text-slate-400">
           <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Liputan
         </button>
       </div>
 
       <div class="p-2 space-y-5">
         <div id="input-search-container" class="relative group">
-          <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-violet-500"></i>
-          <input type="text" id="input-search" onkeydown="if(event.key === 'Enter') generateNews()" placeholder="Ketik topik berita terkini..." class="w-full pl-14 pr-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-700 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 transition-all outline-none text-base text-slate-700 dark:text-slate-200 placeholder-slate-400 font-medium">
+          <i data-lucide="search" class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+          <input type="text" id="input-search" onkeydown="if(event.key === 'Enter') generateNews()" placeholder="Ketik topik berita terkini..." class="w-full pl-14 pr-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 outline-none text-base font-medium">
         </div>
 
         <div id="input-coverage-container" class="hidden">
-          <textarea id="input-coverage" placeholder="Tempel catatan liputan, press release, atau poin rapat di sini..." class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-700 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 transition-all outline-none text-base text-slate-700 dark:text-slate-200 placeholder-slate-400 min-h-[160px] resize-y font-medium"></textarea>
+          <textarea id="input-coverage" placeholder="Tempel catatan liputan, press release, atau poin rapat di sini..." class="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 outline-none text-base min-h-[160px] resize-y font-medium"></textarea>
+          <div class="mt-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/50 flex items-start gap-2">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"></i>
+            <p class="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+              <b>Catatan Privasi:</b> Jika Anda menggunakan API Key gratis, data dapat digunakan untuk pelatihan model. Jangan masukkan informasi yang bersifat sangat rahasia.
+            </p>
+          </div>
         </div>
 
         <div class="pt-1">
-          <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 block pl-2">
-            Pilih Gaya Penulisan
-          </label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="style-options">
+          <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3 block pl-2">Pilih Gaya Penulisan</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <button onclick="setWritingStyle('straight')" id="style-straight" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-violet-50 dark:bg-violet-900/30 border-violet-400 text-violet-700 dark:text-violet-300 shadow-sm">
               <i data-lucide="zap" class="w-5 h-5 mb-1.5 style-icon text-violet-600 dark:text-violet-400"></i>
               <span class="text-xs font-bold">Straight News</span>
             </button>
-            <button onclick="setWritingStyle('feature')" id="style-feature" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200">
+            <button onclick="setWritingStyle('feature')" id="style-feature" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400">
               <i data-lucide="heart" class="w-5 h-5 mb-1.5 style-icon text-slate-400"></i>
               <span class="text-xs font-bold">Feature</span>
             </button>
-            <button onclick="setWritingStyle('indepth')" id="style-indepth" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200">
+            <button onclick="setWritingStyle('indepth')" id="style-indepth" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400">
               <i data-lucide="book-open" class="w-5 h-5 mb-1.5 style-icon text-slate-400"></i>
               <span class="text-xs font-bold">In-Depth</span>
             </button>
-            <button onclick="setWritingStyle('kasual')" id="style-kasual" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200">
+            <button onclick="setWritingStyle('kasual')" id="style-kasual" class="style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400">
               <i data-lucide="coffee" class="w-5 h-5 mb-1.5 style-icon text-slate-400"></i>
               <span class="text-xs font-bold">Kasual</span>
             </button>
@@ -156,7 +147,7 @@
           <div class="mt-3 grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl">
             <div>
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Jumlah Artikel</label>
-              <select id="input-count" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold outline-none focus:border-violet-400">
+              <select id="input-count" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold outline-none">
                 <option value="1" selected>1 Artikel</option>
                 <option value="3">3 Artikel</option>
                 <option value="5">5 Artikel</option>
@@ -164,20 +155,38 @@
             </div>
             <div>
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Panjang</label>
-              <select id="input-length" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold outline-none focus:border-violet-400">
+              <select id="input-length" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold outline-none">
                 <option value="short">Singkat (3 paragraf)</option>
                 <option value="medium" selected>Sedang (5 paragraf)</option>
                 <option value="long">Panjang (8+ paragraf)</option>
               </select>
             </div>
             <div class="col-span-2">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Angle / Sudut Pandang</label>
+              <select id="input-angle" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold outline-none">
+                <option value="auto" selected>Otomatis (bervariasi)</option>
+                <option value="kebijakan">Dampak Kebijakan</option>
+                <option value="masyarakat">Reaksi Masyarakat</option>
+                <option value="ekonomi">Dampak Ekonomi</option>
+                <option value="data">Data & Statistik</option>
+                <option value="tokoh">Kutipan Tokoh</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Mode AI</label>
+              <select id="input-mode" class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm font-semibold outline-none">
+                <option value="strict" selected>Mode Ketat (hanya fakta dari bahan)</option>
+                <option value="creative">Mode Kreatif (AI boleh tambah konteks)</option>
+              </select>
+            </div>
+            <div class="col-span-2">
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Instruksi Tambahan (opsional)</label>
-              <input type="text" id="input-extra" placeholder="Misal: fokus ke dampak ekonomi, sertakan kutipan pejabat..." class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm outline-none focus:border-violet-400">
+              <input type="text" id="input-extra" placeholder="Misal: fokus ke dampak ekonomi..." class="w-full p-2.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-sm outline-none">
             </div>
           </div>
         </details>
 
-        <button id="btn-generate" onclick="generateNews()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white py-4 rounded-2xl font-bold transition-all transform active:scale-[0.98] shadow-xl shadow-violet-200/50 dark:shadow-violet-900/30 flex items-center justify-center disabled:opacity-70 disabled:active:scale-100 mt-2">
+        <button id="btn-generate" onclick="generateNews()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white py-4 rounded-2xl font-bold transition-all transform active:scale-[0.98] shadow-xl flex items-center justify-center disabled:opacity-70 mt-2">
           <i data-lucide="sparkles" id="btn-icon-normal" class="w-5 h-5 mr-2"></i>
           <i data-lucide="loader-2" id="btn-icon-loading" class="w-5 h-5 mr-2 animate-spin hidden"></i>
           <span id="btn-text">Generate Berita</span>
@@ -185,29 +194,29 @@
       </div>
     </div>
 
-    <div id="error-container" class="hidden p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-[1.5rem] flex items-start border border-red-100 dark:border-red-900/50 transition-all duration-300">
+    <div id="error-container" class="hidden p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 rounded-[1.5rem] flex items-start border border-red-100 dark:border-red-900/50">
       <i data-lucide="alert-circle" class="w-5 h-5 mr-3 flex-shrink-0 mt-0.5"></i>
       <p id="error-message" class="font-semibold text-sm leading-relaxed"></p>
     </div>
 
     <div id="results-section" class="hidden space-y-6 pb-10 transition-all duration-700 opacity-0 translate-y-4">
       <div id="action-bar" class="hidden flex flex-wrap gap-2 items-center">
-        <button onclick="exportAll('txt')" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 shadow-sm">
-          <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Export .txt
+        <button onclick="exportAll('txt')" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 transition-all px-3.5 py-2.5 rounded-xl shadow-sm">
+          <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> .txt
         </button>
-        <button onclick="exportAll('doc')" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 shadow-sm">
-          <i data-lucide="file-text" class="w-3.5 h-3.5 mr-1.5"></i> Export .doc
+        <button onclick="exportAll('doc')" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 transition-all px-3.5 py-2.5 rounded-xl shadow-sm">
+          <i data-lucide="file-text" class="w-3.5 h-3.5 mr-1.5"></i> .doc
         </button>
-        <button onclick="copyAll()" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 shadow-sm">
-          <i data-lucide="copy" class="w-3.5 h-3.5 mr-1.5"></i> Copy Semua
+        <button onclick="copyAll()" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 transition-all px-3.5 py-2.5 rounded-xl shadow-sm">
+          <i data-lucide="copy" class="w-3.5 h-3.5 mr-1.5"></i> Copy
         </button>
-        <button onclick="printAll()" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all px-3.5 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 shadow-sm">
-          <i data-lucide="printer" class="w-3.5 h-3.5 mr-1.5"></i> Print/PDF
+        <button onclick="printAll()" class="flex items-center text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 transition-all px-3.5 py-2.5 rounded-xl shadow-sm">
+          <i data-lucide="printer" class="w-3.5 h-3.5 mr-1.5"></i> Print
         </button>
       </div>
       <div id="sources-container" class="space-y-3 hidden">
         <h3 class="flex items-center text-xs font-bold text-slate-400 uppercase tracking-wider pl-2">
-          <i data-lucide="globe" class="w-3.5 h-3.5 mr-1.5"></i> Sumber Validasi AI
+          <i data-lucide="globe" class="w-3.5 h-3.5 mr-1.5"></i> Sumber Berita
         </h3>
         <div id="sources-list" class="flex overflow-x-auto gap-3 pb-2 hide-scrollbar"></div>
       </div>
@@ -215,76 +224,97 @@
     </div>
   </main>
 
-  <button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="hidden fixed bottom-6 right-6 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-2xl shadow-xl shadow-violet-300/50 dark:shadow-violet-900/50 items-center justify-center transition-all active:scale-95 z-40">
+  <button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})" class="hidden fixed bottom-6 right-6 w-12 h-12 bg-violet-600 text-white rounded-2xl shadow-xl items-center justify-center z-40">
     <i data-lucide="arrow-up" class="w-5 h-5"></i>
   </button>
 
-  <!-- Modal API Key -->
+  <!-- Modal Pengaturan Multi-Provider -->
   <div id="api-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300" onclick="if(event.target === this) toggleApiModal()">
-    <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-md transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="api-modal-content">
+    <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-lg transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="api-modal-content">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
-          <i data-lucide="key" class="w-5 h-5 mr-2 text-violet-600"></i>
-          API Key Saya
+        <h3 class="text-xl font-bold flex items-center">
+          <i data-lucide="settings" class="w-5 h-5 mr-2 text-violet-600"></i>
+          Pengaturan AI Provider
         </h3>
-        <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" aria-label="Tutup">
+        <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div class="p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
-        <div class="flex items-start gap-2 mb-2">
-          <i data-lucide="info" class="w-4 h-4 text-violet-600 flex-shrink-0 mt-0.5"></i>
-          <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed font-bold">
-            Setiap pengguna wajib menggunakan API Key sendiri
-          </p>
-        </div>
-        <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed pl-6">
-          API Key disimpan <b>hanya di browser Anda</b> (localStorage) dan tidak pernah dikirim ke server kami.
-          Kuota gratis Gemini API adalah <b>milik Anda sendiri</b>, sehingga tidak akan bertabrakan dengan pengguna lain.
+      <div class="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
+        <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed">
+          <b>Groq & Cerebras</b> adalah provider utama yang tertanam di aplikasi — gratis, tanpa perlu Anda isi apapun.<br>
+          <b>Gemini</b> bersifat <b>opsional</b> — isi API Key pribadi Anda sebagai cadangan jika kuota gratis utama habis.
         </p>
       </div>
 
-      <details class="mb-4 group">
-        <summary class="cursor-pointer text-xs font-bold text-violet-600 hover:text-violet-700 flex items-center select-none">
-          <i data-lucide="help-circle" class="w-3.5 h-3.5 mr-1.5 group-open:rotate-90 transition-transform"></i>
-          Bagaimana cara mendapatkan API Key gratis?
-        </summary>
-        <ol class="mt-3 pl-5 space-y-2 text-xs text-slate-600 dark:text-slate-400 leading-relaxed list-decimal">
-          <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-violet-600 hover:underline font-semibold">Google AI Studio <i data-lucide="external-link" class="w-3 h-3 inline"></i></a></li>
-          <li>Login dengan akun Google Anda</li>
-          <li>Klik tombol <b>"Create API Key"</b></li>
-          <li>Salin kunci yang muncul (dimulai dengan <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded font-mono">AIza...</code> atau <code class="bg-slate-100 dark:bg-slate-800 px-1 rounded font-mono">AQ...</code>)</li>
-          <li>Tempel di kolom di bawah ini</li>
-        </ol>
-      </details>
-
-      <label class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2 pl-1">
-        Gemini API Key Anda
-      </label>
-
-      <div class="relative mb-2">
-        <input type="password" id="input-api-key" placeholder="Tempel API Key di sini..." class="w-full p-4 pr-12 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/30 transition-all outline-none text-slate-700 dark:text-slate-200 font-mono text-sm" autocomplete="off" spellcheck="false">
-        <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 p-1.5 rounded-lg transition-colors" title="Tampilkan/Sembunyikan" aria-label="Tampilkan API Key">
-          <i data-lucide="eye" id="api-key-eye-icon" class="w-4 h-4"></i>
-        </button>
-      </div>
-      <p id="api-key-status" class="text-xs font-semibold mb-4 pl-1 min-h-[16px]"></p>
-
-      <div class="flex gap-2 mb-3">
-        <button onclick="testApiKey()" id="btn-test-key" class="flex-1 py-3 rounded-xl font-bold text-sm text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-900/50 transition-colors flex items-center justify-center">
-          <i data-lucide="flask-conical" class="w-4 h-4 mr-1.5"></i>
-          <span id="btn-test-text">Test Koneksi</span>
-        </button>
-        <button onclick="deleteApiKey()" class="flex-1 py-3 rounded-xl font-bold text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-900/50 transition-colors flex items-center justify-center">
-          <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i>
-          Hapus Key
-        </button>
+      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <i data-lucide="zap" class="w-4 h-4 text-orange-600"></i>
+            </div>
+            <div>
+              <p class="font-bold text-sm">Groq (Qwen3-32B)</p>
+              <p class="text-[10px] text-slate-500">Provider Utama • Tertanam</p>
+            </div>
+          </div>
+          <span id="groq-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
+        </div>
       </div>
 
-      <div class="flex gap-3">
-        <button onclick="toggleApiModal()" class="flex-1 py-3.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Batal</button>
-        <button onclick="saveApiKey()" class="flex-1 py-3.5 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700 transition-colors">Simpan Key</button>
+      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <i data-lucide="cpu" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+            <div>
+              <p class="font-bold text-sm">Cerebras (GPT-OSS-120B)</p>
+              <p class="text-[10px] text-slate-500">Fallback 1 • Tertanam</p>
+            </div>
+          </div>
+          <span id="cerebras-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
+        </div>
+      </div>
+
+      <div class="mb-3 p-4 rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 bg-violet-50/50 dark:bg-violet-900/10">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+              <i data-lucide="gem" class="w-4 h-4 text-violet-600"></i>
+            </div>
+            <div>
+              <p class="font-bold text-sm">Gemini (Flash-Lite)</p>
+              <p class="text-[10px] text-slate-500">Fallback 2 • Opsional oleh User</p>
+            </div>
+          </div>
+          <span id="gemini-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
+        </div>
+
+        <div class="relative mb-2">
+          <input type="password" id="input-gemini-key" placeholder="Tempel Gemini API Key (opsional)..." class="w-full p-3 pr-12 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 outline-none font-mono text-xs">
+          <button type="button" onclick="toggleKeyVisibility('input-gemini-key','gemini-eye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 p-1.5">
+            <i data-lucide="eye" id="gemini-eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <p id="gemini-key-status" class="text-xs font-semibold pl-1 min-h-[16px] mb-2"></p>
+
+        <div class="flex gap-2">
+          <button onclick="testGemini()" id="btn-test-gemini" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-900/50 hover:bg-violet-50 transition-colors flex items-center justify-center">
+            <i data-lucide="flask-conical" class="w-3.5 h-3.5 mr-1.5"></i>
+            <span id="test-gemini-text">Test</span>
+          </button>
+          <button onclick="deleteGeminiKey()" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-red-600 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 hover:bg-red-50 transition-colors flex items-center justify-center">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i>
+            Hapus
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-4">
+        <button onclick="toggleApiModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">Tutup</button>
+        <button onclick="saveGeminiKey()" class="flex-1 py-3 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700">Simpan Gemini</button>
       </div>
     </div>
   </div>
@@ -293,13 +323,13 @@
   <div id="history-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300" onclick="if(event.target === this) toggleHistoryModal()">
     <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col transform scale-95 transition-transform duration-300" id="history-modal-content">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+        <h3 class="text-xl font-bold flex items-center">
           <i data-lucide="history" class="w-5 h-5 mr-2 text-violet-600"></i>
           Riwayat Generate
         </h3>
         <div class="flex items-center gap-2">
-          <button onclick="clearHistory()" class="text-xs font-bold text-red-500 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">Hapus Semua</button>
-          <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" aria-label="Tutup">
+          <button onclick="clearHistory()" class="text-xs font-bold text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50">Hapus Semua</button>
+          <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-slate-600">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
@@ -310,9 +340,90 @@
 
   <script>
     // ============================================================
-    // INITIALIZATION
+    // KONFIGURASI PROVIDER — API KEY SUDAH DITANAM
     // ============================================================
-    lucide.createIcons();
+    const EMBEDDED_KEYS = {
+      groq: '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',
+      cerebras: 'csk-hh4v4cnycffpr93krdt4p388pcd3pvj4cnj3nwd242xx2kmr'
+    };
+
+    const PROVIDERS = [
+      {
+        id: 'groq',
+        name: 'Groq',
+        subtitle: 'Qwen3-32B',
+        url: 'https://api.groq.com/openai/v1/chat/completions',
+        model: 'qwen/qwen3-32b',
+        format: 'openai',
+        getKey: () => EMBEDDED_KEYS.groq,
+        isConfigured: () => EMBEDDED_KEYS.groq && !EMBEDDED_KEYS.groq.includes('xxxx')
+      },
+      {
+        id: 'cerebras',
+        name: 'Cerebras',
+        subtitle: 'GPT-OSS-120B',
+        url: 'https://api.cerebras.ai/v1/chat/completions',
+        model: 'gpt-oss-120b',
+        format: 'openai',
+        getKey: () => EMBEDDED_KEYS.cerebras,
+        isConfigured: () => EMBEDDED_KEYS.cerebras && !EMBEDDED_KEYS.cerebras.includes('xxxx')
+      },
+      {
+        id: 'gemini',
+        name: 'Gemini',
+        subtitle: 'Flash-Lite (User)',
+        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+        model: 'gemini-2.5-flash-lite',
+        format: 'gemini',
+        getKey: () => localStorage.getItem('jurnalis_gemini_key'),
+        isConfigured: () => {
+          const k = localStorage.getItem('jurnalis_gemini_key');
+          return k && /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(k);
+        }
+      }
+    ];
+
+    // ============================================================
+    // ATURAN JURNALISTIK & SEO
+    // ============================================================
+    const JOURNALISM_RULES = `
+【LARANGAN MUTLAK - PELANGGARAN BERAT】
+1. DILARANG menambahkan fakta, angka, tanggal, nama, atau kutipan yang TIDAK ADA di bahan input.
+2. DILARANG mengarang kutipan. Jika bahan tidak ada kutipan langsung, JANGAN tulis "kata dia...".
+3. Jika informasi bahan tidak cukup, BALAS dengan: "Informasi tidak cukup untuk generate berita."
+4. DILARANG menambahkan opini pribadi, komentar, atau kata sifat emosional.
+5. DILARANG menggunakan kalimat pasif jika bisa aktif.
+
+【ATURAN FORMAT BERITA (WAJIB)】
+- Judul: 6-8 kata, huruf kapital di awal setiap kata (kecuali "dan, di, yang, untuk"), TIDAK diawali angka, harus kalimat lengkap.
+- Paragraf 1 (LEAD): 1-2 kalimat. WAJIB memuat: APA, SIAPA, KAPAN, DI MANA.
+- Paragraf 2: Kutipan langsung (jika tersedia di bahan). Format: "Isi kutipan," kata Nama, Jabatan.
+- Paragraf 3 dst: Detail tambahan, data, latar belakang — piramida terbalik.
+- Maksimal 3 kalimat per paragraf.
+- Gunakan kalimat AKTIF.
+- Setiap paragraf memuat SATU informasi utama.
+
+【ATURAN SEO (WAJIB)】
+- Meta Title: 50-60 karakter. Kata kunci utama di 30 karakter pertama.
+- Meta Description: 150-155 karakter. Berisi kata kunci + nilai tambah.
+- Kata kunci utama muncul 2-3 kali secara natural.
+
+【OUTPUT WAJIB - FORMAT JSON MURNI】
+Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
+{
+  "articles": [
+    {
+      "title": "Judul Berita 6-8 Kata",
+      "meta_title": "Meta Title 50-60 Karakter",
+      "meta_description": "Meta description 150-155 karakter...",
+      "angle": "Sudut Pandang",
+      "content": "Isi berita. Pisahkan paragraf dengan \\n\\n",
+      "source_name": "Nama Media",
+      "source_date": "Tanggal"
+    }
+  ]
+}
+`;
 
     // ============================================================
     // STATE
@@ -325,22 +436,6 @@
     let currentRequestId = 0;
 
     const MAX_HISTORY = 20;
-    const API_KEY_STORAGE = 'jurnalis_gemini_api_key';
-
-    // ⚠️ MODEL TERBARU: gemini-3.5-flash-lite
-    // Model ini kompatibel dengan API Key format baru (AQ.) dan lama (AIzaSy)
-    const GEMINI_MODEL = 'gemini-3.5-flash-lite';
-
-    // Support format baru AQ. dan format lama AIzaSy
-    const API_KEY_REGEX = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/;
-
-    function detectKeyFormat(key) {
-      if (!key) return 'empty';
-      if (key.startsWith('AQ.')) return 'new';
-      if (key.startsWith('AIzaSy')) return 'old';
-      return 'unknown';
-    }
-
     const angleThemes = [
       { bg: "bg-blue-50 dark:bg-blue-900/20", text: "text-blue-700 dark:text-blue-300", border: "border-blue-100 dark:border-blue-900/50", icon: "text-blue-500" },
       { bg: "bg-fuchsia-50 dark:bg-fuchsia-900/20", text: "text-fuchsia-700 dark:text-fuchsia-300", border: "border-fuchsia-100 dark:border-fuchsia-900/50", icon: "text-fuchsia-500" },
@@ -350,69 +445,61 @@
     ];
 
     // ============================================================
-    // THEME (Dark Mode)
+    // INIT
     // ============================================================
+    lucide.createIcons();
+
     function initTheme() {
       const saved = localStorage.getItem('jurnalis_theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const isDark = saved ? saved === 'dark' : prefersDark;
       document.documentElement.classList.toggle('dark', isDark);
-      updateThemeIcon(isDark);
+      const icon = document.getElementById('theme-icon');
+      if (icon) icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
     }
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('jurnalis_theme', isDark ? 'dark' : 'light');
-      updateThemeIcon(isDark);
-    }
-    function updateThemeIcon(isDark) {
       const icon = document.getElementById('theme-icon');
-      if (!icon) return;
-      icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+      if (icon) icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
       lucide.createIcons();
     }
     initTheme();
 
-    // ============================================================
-    // API STATUS INDICATOR
-    // ============================================================
-    function updateApiStatusIndicator() {
-      const dot = document.getElementById('api-status-dot');
-      const banner = document.getElementById('api-warning-banner');
-      const key = localStorage.getItem(API_KEY_STORAGE);
-      if (key && API_KEY_REGEX.test(key)) {
-        dot.classList.add('hidden');
-        banner.classList.add('hidden');
-      } else if (key) {
-        dot.classList.remove('hidden');
-        dot.className = 'absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-500 border-2 border-white/80';
-        banner.classList.add('hidden');
-      } else {
-        dot.classList.remove('hidden');
-        dot.className = 'absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white/80';
-        banner.classList.remove('hidden');
-      }
+    function updateProviderIndicators() {
+      const container = document.getElementById('provider-indicators');
+      container.innerHTML = PROVIDERS.map(p => {
+        const active = p.isConfigured();
+        return `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${active ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}">
+          ${p.name} ${active ? '●' : '○'}
+        </span>`;
+      }).join('');
     }
 
-    // ============================================================
-    // TOAST NOTIFICATIONS
-    // ============================================================
+    function updateProviderModalStatus() {
+      const groqEl = document.getElementById('groq-status');
+      const cerebEl = document.getElementById('cerebras-status');
+      const geminiEl = document.getElementById('gemini-status');
+      
+      [groqEl, cerebEl, geminiEl].forEach((el, i) => {
+        const p = PROVIDERS[i];
+        if (p.isConfigured()) {
+          el.textContent = '✓ Aktif';
+          el.className = 'text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300';
+        } else {
+          el.textContent = '○ Belum';
+          el.className = 'text-[10px] font-bold px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-500';
+        }
+      });
+    }
+
     function showToast(message, type = 'info', duration = 3000) {
       const container = document.getElementById('toast-container');
-      const colors = {
-        info: 'bg-slate-800 dark:bg-slate-700 text-white',
-        success: 'bg-emerald-600 text-white',
-        error: 'bg-red-600 text-white',
-        warning: 'bg-amber-500 text-white',
-      };
-      const icons = {
-        info: 'info', success: 'check-circle', error: 'alert-circle', warning: 'alert-triangle',
-      };
+      const colors = { info: 'bg-slate-800 dark:bg-slate-700 text-white', success: 'bg-emerald-600 text-white', error: 'bg-red-600 text-white', warning: 'bg-amber-500 text-white' };
+      const icons = { info: 'info', success: 'check-circle', error: 'alert-circle', warning: 'alert-triangle' };
       const toast = document.createElement('div');
       toast.className = `toast-enter pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-2xl shadow-xl ${colors[type]} max-w-sm`;
-      toast.innerHTML = `
-        <i data-lucide="${icons[type]}" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
-        <p class="text-sm font-semibold leading-relaxed flex-1">${message}</p>
-      `;
+      toast.innerHTML = `<i data-lucide="${icons[type]}" class="w-5 h-5 flex-shrink-0 mt-0.5"></i><p class="text-sm font-semibold leading-relaxed flex-1">${message}</p>`;
       container.appendChild(toast);
       lucide.createIcons();
       setTimeout(() => {
@@ -424,21 +511,18 @@
     }
 
     // ============================================================
-    // API KEY MODAL
+    // API MODAL
     // ============================================================
     function toggleApiModal() {
       const modal = document.getElementById('api-modal');
       const content = document.getElementById('api-modal-content');
       if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
-        const stored = localStorage.getItem(API_KEY_STORAGE) || '';
-        document.getElementById('input-api-key').value = stored;
-        validateApiKeyInput();
-        setTimeout(() => {
-          modal.classList.remove('opacity-0');
-          content.classList.remove('scale-95');
-          document.getElementById('input-api-key').focus();
-        }, 10);
+        const stored = localStorage.getItem('jurnalis_gemini_key') || '';
+        document.getElementById('input-gemini-key').value = stored;
+        validateGeminiKey();
+        updateProviderModalStatus();
+        setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
       } else {
         modal.classList.add('opacity-0');
         content.classList.add('scale-95');
@@ -446,146 +530,93 @@
       }
     }
 
-    function toggleApiKeyVisibility() {
-      const input = document.getElementById('input-api-key');
-      const icon = document.getElementById('api-key-eye-icon');
-      if (input.type === 'password') {
-        input.type = 'text';
-        icon.setAttribute('data-lucide', 'eye-off');
-      } else {
-        input.type = 'password';
-        icon.setAttribute('data-lucide', 'eye');
-      }
+    function toggleKeyVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') { input.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); }
+      else { input.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
       lucide.createIcons();
     }
 
-    function validateApiKeyInput() {
-      const key = document.getElementById('input-api-key').value.trim();
-      const statusEl = document.getElementById('api-key-status');
-      const format = detectKeyFormat(key);
-      if (!key) {
-        statusEl.textContent = '';
-        statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px]';
-        return;
-      }
-      if (API_KEY_REGEX.test(key)) {
-        if (format === 'new') {
-          statusEl.innerHTML = '✓ Format baru (AQ.) valid';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-emerald-600 dark:text-emerald-400';
-        } else if (format === 'old') {
-          statusEl.innerHTML = '✓ Format lama (AIzaSy) valid';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-emerald-600 dark:text-emerald-400';
-        } else {
-          statusEl.innerHTML = '✓ Format valid';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-emerald-600 dark:text-emerald-400';
-        }
+    function validateGeminiKey() {
+      const key = document.getElementById('input-gemini-key').value.trim();
+      const el = document.getElementById('gemini-key-status');
+      if (!key) { el.textContent = ''; el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2'; return; }
+      const valid = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(key);
+      if (valid) {
+        el.innerHTML = '✓ Format valid';
+        el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2 text-emerald-600';
       } else {
-        if (format === 'new') {
-          statusEl.innerHTML = '⚠ Awalan <b>AQ.</b> dikenali tapi panjang tidak wajar';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-amber-600 dark:text-amber-400';
-        } else if (format === 'old') {
-          statusEl.innerHTML = '⚠ Awalan <b>AIzaSy</b> dikenali tapi panjang tidak sesuai';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-amber-600 dark:text-amber-400';
-        } else {
-          statusEl.innerHTML = '⚠ Format tidak dikenal. Harus <b>AQ.</b> atau <b>AIzaSy</b>';
-          statusEl.className = 'text-xs font-semibold mb-4 pl-1 min-h-[16px] text-red-600 dark:text-red-400';
-        }
+        el.innerHTML = '⚠ Format tidak valid';
+        el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2 text-amber-600';
       }
     }
-    document.getElementById('input-api-key').addEventListener('input', validateApiKeyInput);
+    document.getElementById('input-gemini-key').addEventListener('input', validateGeminiKey);
 
-    function saveApiKey() {
-      const key = document.getElementById('input-api-key').value.trim();
-      if (!key) {
-        showToast('API Key tidak boleh kosong', 'warning');
+    function saveGeminiKey() {
+      const key = document.getElementById('input-gemini-key').value.trim();
+      if (key && !/^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(key)) {
+        showToast('Format API Key tidak valid', 'warning');
         return;
       }
-      if (!API_KEY_REGEX.test(key)) {
-        showToast('Format API Key tidak valid. Periksa kembali.', 'warning', 4000);
-        return;
+      if (key) {
+        localStorage.setItem('jurnalis_gemini_key', key);
+        showToast('Gemini API Key disimpan sebagai cadangan', 'success');
+      } else {
+        localStorage.removeItem('jurnalis_gemini_key');
+        showToast('Gemini API Key dihapus', 'info');
       }
-      localStorage.setItem(API_KEY_STORAGE, key);
-      updateApiStatusIndicator();
+      updateProviderIndicators();
+      updateProviderModalStatus();
       toggleApiModal();
-      hideError();
-      showToast('API Key berhasil disimpan di browser Anda', 'success');
     }
 
-    function deleteApiKey() {
-      if (!confirm('Hapus API Key dari browser ini?')) return;
-      localStorage.removeItem(API_KEY_STORAGE);
-      document.getElementById('input-api-key').value = '';
-      validateApiKeyInput();
-      updateApiStatusIndicator();
-      showToast('API Key dihapus', 'info');
+    function deleteGeminiKey() {
+      if (!confirm('Hapus Gemini API Key?')) return;
+      localStorage.removeItem('jurnalis_gemini_key');
+      document.getElementById('input-gemini-key').value = '';
+      validateGeminiKey();
+      updateProviderIndicators();
+      updateProviderModalStatus();
+      showToast('Gemini API Key dihapus', 'info');
     }
 
-    async function testApiKey() {
-      const key = document.getElementById('input-api-key').value.trim();
-      if (!key) {
-        showToast('Masukkan API Key terlebih dahulu', 'warning');
-        return;
+    async function testGemini() {
+      const key = document.getElementById('input-gemini-key').value.trim();
+      if (!key) { showToast('Masukkan API Key dulu', 'warning'); return; }
+      if (!/^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(key)) {
+        showToast('Format tidak valid', 'error'); return;
       }
-      if (!API_KEY_REGEX.test(key)) {
-        showToast('Format API Key tidak valid', 'error');
-        return;
-      }
-
-      const btn = document.getElementById('btn-test-key');
-      const text = document.getElementById('btn-test-text');
-      const original = text.textContent;
+      const btn = document.getElementById('btn-test-gemini');
+      const text = document.getElementById('test-gemini-text');
       text.textContent = 'Menguji...';
       btn.disabled = true;
-
       try {
-        // ⚠️ Model terbaru: gemini-3.5-flash-lite
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-        const response = await fetch(url, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': key
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: 'Halo' }] }]
-          })
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify({ contents: [{ parts: [{ text: 'Halo' }] }] })
         });
-
-        if (response.ok) {
-          showToast('✓ API Key valid dan berfungsi!', 'success', 4000);
-        } else if (response.status === 429) {
-          showToast('API Key valid, tapi kuota sedang penuh. Tunggu sebentar.', 'warning', 5000);
-        } else if (response.status === 400 || response.status === 403) {
-          const err = await response.json().catch(() => ({}));
-          showToast('API Key ditolak: ' + (err?.error?.message || 'Tidak valid'), 'error', 5000);
-        } else if (response.status === 404) {
-          showToast('Model tidak ditemukan. Hubungi developer.', 'error', 5000);
-        } else {
-          showToast('Respons tidak terduga: HTTP ' + response.status, 'error', 4000);
-        }
-      } catch (err) {
-        showToast('Gagal terhubung: ' + err.message, 'error', 4000);
-      } finally {
-        text.textContent = original;
-        btn.disabled = false;
-      }
+        if (res.ok) showToast('✓ Gemini API Key valid', 'success', 4000);
+        else if (res.status === 429) showToast('Valid, tapi kuota penuh', 'warning', 4000);
+        else showToast('Ditolak: HTTP ' + res.status, 'error', 4000);
+      } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
+      finally { text.textContent = 'Test'; btn.disabled = false; }
     }
 
     // ============================================================
-    // HISTORY MODAL
+    // HISTORY
     // ============================================================
     function getHistory() {
-      try {
-        return JSON.parse(localStorage.getItem('jurnalis_history') || '[]');
-      } catch { return []; }
+      try { return JSON.parse(localStorage.getItem('jurnalis_history') || '[]'); } catch { return []; }
     }
     function saveHistory(entry) {
-      const history = getHistory();
-      history.unshift(entry);
-      localStorage.setItem('jurnalis_history', JSON.stringify(history.slice(0, MAX_HISTORY)));
+      const h = getHistory();
+      h.unshift(entry);
+      localStorage.setItem('jurnalis_history', JSON.stringify(h.slice(0, MAX_HISTORY)));
     }
     function clearHistory() {
-      if (!confirm('Hapus semua riwayat generate?')) return;
+      if (!confirm('Hapus semua riwayat?')) return;
       localStorage.removeItem('jurnalis_history');
       renderHistory();
       showToast('Riwayat dihapus', 'success');
@@ -596,10 +627,7 @@
       if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
         renderHistory();
-        setTimeout(() => {
-          modal.classList.remove('opacity-0');
-          content.classList.remove('scale-95');
-        }, 10);
+        setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
       } else {
         modal.classList.add('opacity-0');
         content.classList.add('scale-95');
@@ -608,32 +636,26 @@
     }
     function renderHistory() {
       const list = document.getElementById('history-list');
-      const history = getHistory();
-      if (history.length === 0) {
-        list.innerHTML = `
-          <div class="text-center py-12 text-slate-400">
-            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
-            <p class="text-sm font-semibold">Belum ada riwayat</p>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
+      const h = getHistory();
+      if (h.length === 0) {
+        list.innerHTML = `<div class="text-center py-12 text-slate-400"><i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i><p class="text-sm font-semibold">Belum ada riwayat</p></div>`;
+        lucide.createIcons(); return;
       }
-      list.innerHTML = history.map((item, idx) => `
-        <button onclick="loadHistory(${idx})" class="w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50/50 dark:hover:bg-violet-900/20 transition-all group">
+      list.innerHTML = h.map((item, idx) => `
+        <button onclick="loadHistory(${idx})" class="w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:bg-violet-50/50 transition-all">
           <div class="flex justify-between items-start gap-3 mb-1.5">
-            <p class="font-bold text-sm text-slate-700 dark:text-slate-200 group-hover:text-violet-700 dark:group-hover:text-violet-300 line-clamp-1 flex-1">${escapeHtml(item.topic)}</p>
-            <span class="text-[10px] font-bold text-slate-400 uppercase whitespace-nowrap">${item.style}</span>
+            <p class="font-bold text-sm line-clamp-1 flex-1">${escapeHtml(item.topic)}</p>
+            <span class="text-[10px] font-bold text-slate-400 uppercase">${item.style}</span>
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">${escapeHtml(item.preview)}</p>
-          <p class="text-[10px] text-slate-400 mt-2 font-semibold">${new Date(item.timestamp).toLocaleString('id-ID')} • ${item.articleCount} artikel</p>
+          <p class="text-xs text-slate-500 line-clamp-2">${escapeHtml(item.preview)}</p>
+          <p class="text-[10px] text-slate-400 mt-2 font-semibold">${new Date(item.timestamp).toLocaleString('id-ID')} • ${item.articleCount} artikel • ${item.provider || ''}</p>
         </button>
       `).join('');
       lucide.createIcons();
     }
     function loadHistory(idx) {
-      const history = getHistory();
-      const item = history[idx];
+      const h = getHistory();
+      const item = h[idx];
       if (!item) return;
       currentMode = item.mode || 'search';
       currentStyle = item.styleKey || 'straight';
@@ -642,9 +664,8 @@
       document.getElementById(currentMode === 'search' ? 'input-search' : 'input-coverage').value = item.topic;
       globalArticles = item.articles;
       globalSources = item.sources || [];
-      renderResults(item.articles, item.sources || []);
+      renderResults(item.articles, item.sources || [], item.provider || '');
       toggleHistoryModal();
-      showToast('Riwayat dimuat', 'success');
     }
 
     // ============================================================
@@ -657,23 +678,18 @@
       const inputSearchContainer = document.getElementById('input-search-container');
       const inputCoverageContainer = document.getElementById('input-coverage-container');
       const activeTab = "flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm bg-white dark:bg-slate-700 text-violet-700 dark:text-violet-300 shadow-sm";
-      const inactiveTab = "flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
+      const inactiveTab = "flex-1 flex justify-center items-center py-3 rounded-xl font-bold transition-all duration-300 text-sm text-slate-500 dark:text-slate-400";
       if (mode === 'search') {
-        tabSearch.className = activeTab;
-        tabCoverage.className = inactiveTab;
-        inputSearchContainer.classList.remove('hidden');
-        inputCoverageContainer.classList.add('hidden');
+        tabSearch.className = activeTab; tabCoverage.className = inactiveTab;
+        inputSearchContainer.classList.remove('hidden'); inputCoverageContainer.classList.add('hidden');
       } else {
-        tabCoverage.className = activeTab;
-        tabSearch.className = inactiveTab;
-        inputCoverageContainer.classList.remove('hidden');
-        inputSearchContainer.classList.add('hidden');
+        tabCoverage.className = activeTab; tabSearch.className = inactiveTab;
+        inputCoverageContainer.classList.remove('hidden'); inputSearchContainer.classList.add('hidden');
       }
       if (clearInput) {
         document.getElementById('input-search').value = '';
         document.getElementById('input-coverage').value = '';
-        hideResults();
-        hideError();
+        hideResults(); hideError();
       }
     }
 
@@ -681,7 +697,7 @@
       currentStyle = style;
       const styles = ['straight', 'feature', 'indepth', 'kasual'];
       const active = "style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-violet-50 dark:bg-violet-900/30 border-violet-400 text-violet-700 dark:text-violet-300 shadow-sm";
-      const inactive = "style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200";
+      const inactive = "style-btn flex flex-col items-center justify-center p-3 rounded-[1.25rem] transition-all border-2 bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400";
       styles.forEach(s => {
         const btn = document.getElementById(`style-${s}`);
         const icon = btn.querySelector('.style-icon');
@@ -697,28 +713,20 @@
       });
     }
 
-    // ============================================================
-    // ERROR / LOADING / RESULTS VISIBILITY
-    // ============================================================
-    function showError(msg) {
-      const errContainer = document.getElementById('error-container');
-      document.getElementById('error-message').innerHTML = msg;
-      errContainer.classList.remove('hidden');
-    }
-    function hideError() {
-      document.getElementById('error-container').classList.add('hidden');
-    }
+    function showError(msg) { document.getElementById('error-message').innerHTML = msg; document.getElementById('error-container').classList.remove('hidden'); }
+    function hideError() { document.getElementById('error-container').classList.add('hidden'); }
     function hideResults() {
-      const resultsSection = document.getElementById('results-section');
-      resultsSection.classList.add('opacity-0', 'translate-y-4');
+      const s = document.getElementById('results-section');
+      s.classList.add('opacity-0', 'translate-y-4');
       setTimeout(() => {
-        resultsSection.classList.add('hidden');
+        s.classList.add('hidden');
         document.getElementById('sources-container').classList.add('hidden');
         document.getElementById('action-bar').classList.add('hidden');
         document.getElementById('articles-stack').innerHTML = '';
         document.getElementById('sources-list').innerHTML = '';
       }, 500);
     }
+
     function setLoading(isLoading) {
       isGenerating = isLoading;
       const btn = document.getElementById('btn-generate');
@@ -727,23 +735,21 @@
       const text = document.getElementById('btn-text');
       if (isLoading) {
         btn.disabled = true;
-        iconNormal.classList.add('hidden');
-        iconLoading.classList.remove('hidden');
+        iconNormal.classList.add('hidden'); iconLoading.classList.remove('hidden');
         text.innerText = "Membentuk Artikel...";
         renderSkeleton();
       } else {
         btn.disabled = false;
-        iconNormal.classList.remove('hidden');
-        iconLoading.classList.add('hidden');
+        iconNormal.classList.remove('hidden'); iconLoading.classList.add('hidden');
         text.innerText = "Generate Berita";
       }
     }
+
     function renderSkeleton() {
-      const resultsSection = document.getElementById('results-section');
-      const articlesStack = document.getElementById('articles-stack');
-      articlesStack.innerHTML = Array(3).fill(0).map(() => `
+      const s = document.getElementById('results-section');
+      document.getElementById('articles-stack').innerHTML = Array(1).fill(0).map(() => `
         <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-lg border border-slate-100 dark:border-slate-800 overflow-hidden">
-          <div class="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+          <div class="p-6 border-b bg-slate-50 dark:bg-slate-800/50">
             <div class="skeleton h-3 w-32 rounded-full mb-3"></div>
             <div class="skeleton h-6 w-4/5 rounded-lg"></div>
           </div>
@@ -755,10 +761,94 @@
           </div>
         </div>
       `).join('');
-      resultsSection.classList.remove('hidden');
-      setTimeout(() => {
-        resultsSection.classList.remove('opacity-0', 'translate-y-4');
-      }, 50);
+      s.classList.remove('hidden');
+      setTimeout(() => s.classList.remove('opacity-0', 'translate-y-4'), 50);
+    }
+
+    // ============================================================
+    // FETCH NEWS FROM RSS
+    // ============================================================
+    async function fetchNewsFromRSS(topic) {
+      const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic)}+when:3d&hl=id-ID&gl=ID&ceid=ID:id`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
+      try {
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error('RSS fetch failed');
+        const text = await res.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, 'text/xml');
+        const items = Array.from(xml.querySelectorAll('item')).slice(0, 5);
+        return items.map(item => ({
+          title: item.querySelector('title')?.textContent || '',
+          link: item.querySelector('link')?.textContent || '',
+          pubDate: item.querySelector('pubDate')?.textContent || '',
+          source: item.querySelector('source')?.textContent || 'Google News',
+          description: item.querySelector('description')?.textContent || ''
+        }));
+      } catch (e) {
+        console.warn('RSS fetch error:', e);
+        return [];
+      }
+    }
+
+    // ============================================================
+    // CALL PROVIDER
+    // ============================================================
+    async function callProvider(provider, prompt, systemInstruction) {
+      const apiKey = provider.getKey();
+      if (!apiKey) throw new Error('API Key tidak tersedia');
+
+      let url, headers, body;
+
+      if (provider.format === 'openai') {
+        url = provider.url;
+        headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        };
+        body = {
+          model: provider.model,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 4000
+        };
+      } else {
+        url = provider.url;
+        headers = {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        };
+        body = {
+          contents: [{ parts: [{ text: prompt }] }],
+          systemInstruction: { parts: [{ text: systemInstruction }] }
+        };
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        const err = new Error(`HTTP ${res.status}`);
+        err.status = res.status;
+        err.detail = errText;
+        throw err;
+      }
+
+      const data = await res.json();
+      let text = '';
+      if (provider.format === 'openai') {
+        text = data.choices?.[0]?.message?.content || '';
+      } else {
+        text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      }
+      return { text, raw: data };
     }
 
     // ============================================================
@@ -777,20 +867,6 @@
         return;
       }
 
-      const activeApiKey = localStorage.getItem(API_KEY_STORAGE);
-      if (!activeApiKey) {
-        showError('<b>API Key belum diatur!</b><br>Klik ikon <b>🔑 Kunci</b> di pojok kanan atas untuk memasukkan Gemini API Key Anda sendiri.<br><br>Setiap user wajib menggunakan API Key-nya sendiri agar kuota tidak bertabrakan.');
-        showToast('API Key belum diatur', 'error');
-        toggleApiModal();
-        return;
-      }
-
-      if (!API_KEY_REGEX.test(activeApiKey)) {
-        showError('<b>Format API Key tidak valid.</b><br>Silakan periksa kembali di menu 🔑 Kunci.');
-        showToast('Format API Key tidak valid', 'error');
-        return;
-      }
-
       const requestId = ++currentRequestId;
       setLoading(true);
       hideError();
@@ -798,96 +874,91 @@
 
       const articleCount = parseInt(document.getElementById('input-count').value) || 1;
       const lengthOption = document.getElementById('input-length').value;
+      const angleOption = document.getElementById('input-angle').value;
+      const modeOption = document.getElementById('input-mode').value;
       const extraInstruction = document.getElementById('input-extra').value.trim();
 
-      // ⚠️ MODEL TERBARU: gemini-3.5-flash-lite
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      let newsContext = '';
+      let rssSources = [];
+      if (currentMode === 'search') {
+        showToast('Mencari berita terbaru...', 'info', 2000);
+        rssSources = await fetchNewsFromRSS(topic);
+        if (rssSources.length > 0) {
+          newsContext = '\n\n【BAHAN BERITA DARI GOOGLE NEWS (3 HARI TERAKHIR)】\n' +
+            rssSources.map((n, i) => `${i + 1}. ${n.title}\n   Sumber: ${n.source}\n   Tanggal: ${n.pubDate}\n   Ringkasan: ${n.description.replace(/<[^>]*>/g, '').substring(0, 200)}`).join('\n\n');
+        } else {
+          newsContext = '\n\n【CATATAN】Tidak ada berita terbaru ditemukan. AI akan menggunakan pengetahuan internal, tapi HARUS tetap pada fakta yang tersedia.';
+        }
+      }
 
       let styleInstruction = "";
       switch(currentStyle) {
-        case 'straight': styleInstruction = "GAYA PENULISAN: Straight News (Sangat lugas, formal, to-the-point, struktur piramida terbalik, utamakan 5W1H di paragraf awal)."; break;
-        case 'feature': styleInstruction = "GAYA PENULISAN: Feature (Storytelling, deskriptif, menyentuh emosi, human interest)."; break;
-        case 'indepth': styleInstruction = "GAYA PENULISAN: In-Depth/Explanatory (Analisis mendalam, formal, kaya konteks & latar belakang)."; break;
-        case 'kasual': styleInstruction = "GAYA PENULISAN: Kasual & Populer (Bahasa luwes, santai, kekinian, interaktif)."; break;
-        default: styleInstruction = "GAYA PENULISAN: Straight News jurnalistik profesional.";
+        case 'straight': styleInstruction = "GAYA: Straight News (lugas, formal, piramida terbalik, 5W1H di lead)."; break;
+        case 'feature': styleInstruction = "GAYA: Feature (storytelling, deskriptif, human interest)."; break;
+        case 'indepth': styleInstruction = "GAYA: In-Depth (analisis mendalam, kaya konteks)."; break;
+        case 'kasual': styleInstruction = "GAYA: Kasual & Populer (bahasa luwes, santai, interaktif)."; break;
       }
+
       const lengthInstruction = {
-        short: "Setiap artikel terdiri dari 3 paragraf yang padat.",
-        medium: "Setiap artikel terdiri dari tepat 5 paragraf yang lengkap dan komprehensif.",
-        long: "Setiap artikel terdiri dari minimal 8 paragraf yang sangat mendalam dan detail.",
-      }[lengthOption] || "Setiap artikel terdiri dari tepat 5 paragraf.";
+        short: "Setiap artikel 3 paragraf.",
+        medium: "Setiap artikel tepat 5 paragraf.",
+        long: "Setiap artikel minimal 8 paragraf."
+      }[lengthOption];
 
-      const extraText = extraInstruction ? `\n\nINSTRUKSI TAMBAHAN DARI USER:\n${extraInstruction}` : '';
+      const angleInstruction = angleOption === 'auto'
+        ? `Setiap artikel harus memiliki angle yang berbeda dan bervariasi.`
+        : `Fokuskan SEMUA artikel pada angle: "${angleOption}".`;
 
-      const jsonFormatInstruction = `\n\nOUTPUT FORMAT WAJIB (JSON valid murni, TANPA teks pengantar/penutup/markdown):\n{\n  "articles": [\n    {\n      "title": "Judul Artikel",\n      "angle": "Sudut Pandang",\n      "content": "Isi berita. Pisahkan paragraf dengan \\n\\n",\n      "source_name": "Nama Media",\n      "source_date": "Tanggal Berita"\n    }\n  ]\n}`;
+      const modeInstruction = modeOption === 'strict'
+        ? `MODE KETAT: Hanya gunakan fakta yang ADA di bahan. DILARANG menambahkan fakta dari pengetahuan umum.`
+        : `MODE KREATIF: Boleh menambahkan konteks/latar belakang dari pengetahuan umum, TAPI harus ditandai dengan "(konteks tambahan)" di dalam teks.`;
 
-      let promptText = "";
-      let sysInstruct = "";
+      const extraText = extraInstruction ? `\n\nINSTRUKSI TAMBAHAN: ${extraInstruction}` : '';
 
-      if (currentMode === 'search') {
-        promptText = `Tanggal Hari Ini: ${currentDate}\nTopik/Referensi: ${topic}\n\nINSTRUKSI PENCARIAN WAKTU NYATA (SANGAT KETAT):\n1. Kamu MUTLAK WAJIB menggunakan alat pencarian (Google Search) untuk mencari BERITA TERBARU terkait topik tersebut.\n2. JANGAN menggunakan data lama. Semua berita harus relevan dengan kejadian di sekitar tanggal ${currentDate}. Maksimal 3 hari ke belakang.\n\nBerdasarkan hasil pencarian paling mutakhir tersebut, buat ${articleCount} artikel berita. Syarat:\n1. Sepenuhnya berdasarkan fakta terbaru dari hasil pencarian hari ini.\n2. ${styleInstruction}\n3. ${lengthInstruction}\n4. Setiap artikel WAJIB memiliki "angle" yang berbeda.\n5. Pisahkan antar paragraf dengan baris baru ganda (\\n\\n).\n6. Wajib cantumkan nama sumber media utama dan tanggal terbit berita referensi ke kolom source_name dan source_date.${extraText}${jsonFormatInstruction}`;
-        sysInstruct = `Kamu adalah jurnalis investigasi kelas dunia. Tanggal hari ini: ${currentDate}. Dilarang mengarang berita atau memakai data lampau. WAJIB gunakan Google Search untuk informasi paling mutakhir.`;
-      } else {
-        promptText = `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan/Resume Kegiatan Mentah:\n${topic}\n\nINSTRUKSI: Kembangkan catatan di atas menjadi ${articleCount} artikel berita utuh yang siap terbit. Syarat:\n1. Kembangkan fakta dari catatan menjadi alur berita yang mengalir natural.\n2. ${styleInstruction}\n3. ${lengthInstruction}\n4. Setiap artikel WAJIB memiliki "angle" yang berbeda.\n5. FORMATTING: Pisahkan setiap paragraf dengan baris baru ganda (\\n\\n).\n6. source_name: "Catatan Liputan / Rilis Pers", source_date: ${currentDate} atau sesuai catatan.${extraText}${jsonFormatInstruction}`;
-        sysInstruct = `Kamu adalah editor jurnalis senior yang ahli mengolah catatan liputan mentah menjadi berita profesional. Tanggal hari ini: ${currentDate}.`;
+      const promptText = currentMode === 'search'
+        ? `Tanggal Hari Ini: ${currentDate}\nTopik: ${topic}\n${newsContext}\n\nBerdasarkan bahan di atas, buat ${articleCount} artikel berita.\n${styleInstruction}\n${lengthInstruction}\n${angleInstruction}\n${modeInstruction}\n${extraText}`
+        : `Tanggal Hari Ini: ${currentDate}\nCatatan Liputan Mentah:\n${topic}\n\nKembangkan catatan di atas menjadi ${articleCount} artikel berita utuh.\n${styleInstruction}\n${lengthInstruction}\n${angleInstruction}\n${modeInstruction}\n${extraText}`;
+
+      const systemInstruction = JOURNALISM_RULES;
+
+      const configuredProviders = PROVIDERS.filter(p => p.isConfigured());
+      if (configuredProviders.length === 0) {
+        setLoading(false);
+        showError('<b>Tidak ada provider AI yang tersedia!</b><br><br>Developer belum mengkonfigurasi Groq/Cerebras API Key, dan Anda belum mengisi Gemini API Key.<br><br>Silakan isi Gemini API Key Anda di menu ⚙️ Pengaturan.');
+        showToast('Tidak ada provider tersedia', 'error');
+        return;
       }
 
-      const payload = {
-        contents: [{ parts: [{ text: promptText }] }],
-        systemInstruction: { parts: [{ text: sysInstruct }] },
-      };
-      if (currentMode === 'search') {
-        payload.tools = [{ "google_search": {} }];
-      }
-
-      const delays = [1000, 2000, 4000, 8000, 16000];
       let success = false;
       let lastError = null;
+      let usedProvider = '';
 
-      for (let i = 0; i <= 5; i++) {
+      for (const provider of configuredProviders) {
         if (requestId !== currentRequestId) return;
         try {
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-goog-api-key': activeApiKey
-            },
-            body: JSON.stringify(payload)
-          });
+          showToast(`Mencoba ${provider.name}...`, 'info', 1500);
+          const result = await callProvider(provider, promptText, systemInstruction);
+          
+          if (!result.text) throw new Error('Respons kosong');
+          
+          const parsed = extractJSON(result.text);
+          const articles = Array.isArray(parsed?.articles) ? parsed.articles : [];
+          if (articles.length === 0) throw new Error('Tidak ada artikel');
 
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            const errorMessage = errorData?.error?.message || 'Tidak diketahui';
-            console.error("API Error:", errorData);
-
-            if (response.status === 429) {
-              throw new Error(`<b>Kuota API Key Anda Habis (429)</b><br>Anda telah mencapai batas permintaan Gemini API.<br><br><b>Solusi:</b><br>• Tunggu 1-2 menit jika limit per menit<br>• Tunggu hingga besok jika limit harian<br>• Gunakan API Key dari akun Google lain<br><br><i>Pesan asli: ${errorMessage}</i>`);
-            }
-            if (response.status === 400 || response.status === 403) {
-              throw new Error(`<b>API Key Ditolak (Status: ${response.status})</b><br>Pesan: <i>${errorMessage}</i><br><br>Pastikan API Key valid dan aktif. Coba klik tombol <b>Test Koneksi</b> di menu 🔑.`);
-            }
-            if (response.status === 404) {
-              throw new Error(`<b>Model Tidak Ditemukan (404)</b><br>Model <code>${GEMINI_MODEL}</code> tidak tersedia untuk API Key Anda.<br><br>Kemungkinan penyebab:<br>• API Key Anda belum memiliki akses ke model ini<br>• Region Anda tidak mendukung model ini<br><br>Silakan buat API Key baru di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold">Google AI Studio</a>.`);
-            }
-            throw new Error(`Gagal menghubungi server (${response.status}): ${errorMessage}`);
+          let sources = rssSources.map(s => ({ uri: s.link, title: s.source }));
+          if (provider.format === 'gemini') {
+            const geminiSources = (result.raw.candidates?.[0]?.groundingMetadata?.groundingAttributions || [])
+              .map(a => ({ uri: a.web?.uri, title: a.web?.title }))
+              .filter(s => s.uri && s.title);
+            sources = [...geminiSources, ...sources];
           }
+          sources = Array.from(new Map(sources.map(item => [item.uri, item])).values()).slice(0, 5);
 
-          const data = await response.json();
-          let textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!textResponse) throw new Error("Format respons tidak sesuai dari AI.");
-
-          const parsedData = extractJSON(textResponse);
-          const rawSources = (data.candidates?.[0]?.groundingMetadata?.groundingAttributions || [])
-            .map(a => ({ uri: a.web?.uri, title: a.web?.title }))
-            .filter(s => s.uri && s.title);
-          const uniqueSources = Array.from(new Map(rawSources.map(item => [item.uri, item])).values());
-
-          const articles = Array.isArray(parsedData?.articles) ? parsedData.articles : [];
-          if (articles.length === 0) throw new Error("AI tidak mengembalikan artikel apapun. Coba lagi.");
-
-          renderResults(articles, uniqueSources);
+          usedProvider = `${provider.name} (${provider.subtitle})`;
+          renderResults(articles, sources, usedProvider);
+          
           saveHistory({
             timestamp: Date.now(),
             topic: topic.substring(0, 100),
@@ -897,26 +968,43 @@
             styleKey: currentStyle,
             articleCount: articles.length,
             articles,
-            sources: uniqueSources,
+            sources,
+            provider: usedProvider
           });
+          
           success = true;
+          showToast(`✓ Berhasil dengan ${provider.name}`, 'success');
           break;
 
         } catch (err) {
           lastError = err;
-          const fatal = err.message.includes("Kuota API Key") || err.message.includes("API Key Ditolak") || err.message.includes("Model Tidak Ditemukan") || err.message.includes("Format respons") || err.message.includes("tidak mengembalikan");
-          if (i === 5 || fatal) break;
-          await new Promise(r => setTimeout(r, delays[i]));
+          console.warn(`Provider ${provider.name} gagal:`, err.message);
+          
+          if (err.status === 429) {
+            showToast(`${provider.name} sibuk, beralih ke provider berikutnya...`, 'warning', 2500);
+            continue;
+          }
+          if (err.status === 401 || err.status === 403) {
+            showToast(`${provider.name} API Key ditolak, coba provider lain...`, 'warning', 2500);
+            continue;
+          }
+          if (err.message.includes('JSON')) {
+            showToast(`${provider.name} gagal format JSON, coba provider lain...`, 'warning', 2500);
+            continue;
+          }
+          continue;
         }
       }
 
       if (requestId === currentRequestId) {
         setLoading(false);
-        if (!success && lastError) {
-          showError(lastError.message || "Terjadi kesalahan. Silakan coba lagi.");
-          showToast('Gagal generate berita', 'error');
-        } else if (success) {
-          showToast('Berita berhasil dibuat!', 'success');
+        if (!success) {
+          showError('<b>Semua provider AI sedang sibuk atau gagal.</b><br><br>' +
+            '<b>Solusi:</b><br>' +
+            '• Tunggu 1-2 menit lalu coba lagi<br>' +
+            '• Isi Gemini API Key Anda di menu ⚙️ sebagai cadangan<br>' +
+            '• Hubungi developer untuk menambah provider baru');
+          showToast('Semua provider gagal', 'error');
         }
       }
     }
@@ -925,23 +1013,22 @@
     // JSON EXTRACTION
     // ============================================================
     function extractJSON(text) {
-      if (!text) throw new Error("Respons kosong dari AI.");
+      if (!text) throw new Error('Respons kosong');
       let cleaned = text.trim();
       cleaned = cleaned.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
       try { return JSON.parse(cleaned); } catch (_) {}
       const first = cleaned.indexOf('{');
       const last = cleaned.lastIndexOf('}');
-      if (first !== -1 && last !== -1 && last > first) {
-        const candidate = cleaned.substring(first, last + 1);
-        try { return JSON.parse(candidate); } catch (_) {}
+      if (first !== -1 && last > first) {
+        try { return JSON.parse(cleaned.substring(first, last + 1)); } catch (_) {}
       }
-      throw new Error("AI tidak mengembalikan JSON valid. Coba generate lagi.");
+      throw new Error('JSON tidak valid');
     }
 
     // ============================================================
     // RENDER RESULTS
     // ============================================================
-    function renderResults(articles, sources) {
+    function renderResults(articles, sources, providerName = '') {
       globalArticles = articles;
       globalSources = sources || [];
       const resultsSection = document.getElementById('results-section');
@@ -951,10 +1038,10 @@
       const actionBar = document.getElementById('action-bar');
 
       if (sources && sources.length > 0) {
-        sourcesList.innerHTML = sources.map((source) => `
-          <a href="${escapeHtml(source.uri)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 hover:text-violet-700 dark:hover:text-violet-300 transition-all px-4 py-2.5 rounded-[1rem] text-slate-600 dark:text-slate-300 shadow-sm whitespace-nowrap font-medium flex-shrink-0">
+        sourcesList.innerHTML = sources.map(s => `
+          <a href="${escapeHtml(s.uri)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-300 transition-all px-4 py-2.5 rounded-[1rem] shadow-sm whitespace-nowrap font-medium flex-shrink-0">
             <i data-lucide="link" class="w-3.5 h-3.5 mr-2"></i>
-            ${escapeHtml(source.title.length > 35 ? source.title.substring(0, 35) + '...' : source.title)}
+            ${escapeHtml(s.title.length > 35 ? s.title.substring(0, 35) + '...' : s.title)}
           </a>
         `).join('');
         sourcesContainer.classList.remove('hidden');
@@ -965,39 +1052,52 @@
       articlesStack.innerHTML = articles.map((article, index) => {
         const theme = angleThemes[index % angleThemes.length];
         const paragraphsHTML = String(article.content || '')
-          .split(/\n\n+/)
-          .filter(p => p.trim() !== '')
-          .map(p => `<p class="mb-5 text-slate-600 dark:text-slate-300 leading-relaxed text-justify text-base sm:text-lg">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
-          .join('');
+          .split(/\n\n+/).filter(p => p.trim()).map(p =>
+            `<p class="mb-5 text-slate-600 dark:text-slate-300 leading-relaxed text-justify text-base sm:text-lg">${escapeHtml(p).replace(/\n/g, '<br>')}</p>`
+          ).join('');
+
+        const metaHTML = article.meta_title ? `
+          <div class="mt-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-xs space-y-1">
+            <p><b class="text-slate-500">SEO Title:</b> ${escapeHtml(article.meta_title)}</p>
+            <p><b class="text-slate-500">SEO Desc:</b> ${escapeHtml(article.meta_description || '-')}</p>
+          </div>
+        ` : '';
+
         return `
-          <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-lg shadow-slate-200/40 dark:shadow-slate-950/50 border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col relative group animate-slide-up" data-article-index="${index}">
-            <div class="p-6 border-b ${theme.border} ${theme.bg} flex justify-between items-start gap-4 transition-colors">
+          <div class="bg-white dark:bg-slate-900 rounded-[2rem] shadow-lg border border-slate-100 dark:border-slate-800 overflow-hidden animate-slide-up">
+            <div class="p-6 border-b ${theme.border} ${theme.bg} flex justify-between items-start gap-4">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center text-xs font-black ${theme.text} uppercase tracking-widest mb-3">
                   <i data-lucide="pen-tool" class="w-4 h-4 mr-2"></i> Angle ${index + 1}: ${escapeHtml(article.angle || 'Utama')}
                 </div>
-                <h2 class="text-xl sm:text-2xl font-bold leading-tight text-slate-800 dark:text-slate-100">${escapeHtml(article.title || '(Tanpa Judul)')}</h2>
+                <h2 class="text-xl sm:text-2xl font-bold leading-tight">${escapeHtml(article.title || '(Tanpa Judul)')}</h2>
               </div>
               <div class="flex flex-col gap-1.5 flex-shrink-0">
-                <button onclick="handleCopy(${index}, this)" class="p-3 text-slate-400 hover:text-violet-600 hover:bg-white/80 dark:hover:bg-slate-700/80 rounded-2xl transition-all shadow-sm bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 active:scale-95" title="Salin Berita" aria-label="Salin Berita">
+                <button onclick="handleCopy(${index}, this)" class="p-3 text-slate-400 hover:text-violet-600 rounded-2xl transition-all shadow-sm bg-white/50 dark:bg-slate-800/50 active:scale-95" title="Salin">
                   <div class="icon-copy"><i data-lucide="copy" class="w-5 h-5"></i></div>
                   <div class="icon-check hidden"><i data-lucide="check" class="w-5 h-5 text-green-500"></i></div>
                 </button>
-                <button onclick="regenerateArticle(${index})" class="p-3 text-slate-400 hover:text-fuchsia-600 hover:bg-white/80 dark:hover:bg-slate-700/80 rounded-2xl transition-all shadow-sm bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 active:scale-95" title="Regenerate Artikel Ini" aria-label="Regenerate Artikel Ini">
-                  <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                </button>
               </div>
             </div>
-            <div class="p-6 sm:p-8 bg-white dark:bg-slate-900 article-content" id="article-content-${index}">
+            <div class="p-6 sm:p-8 article-content" id="article-content-${index}">
               ${paragraphsHTML}
+              ${metaHTML}
             </div>
-            <div class="px-6 py-4 border-t border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row gap-3 text-xs text-slate-500 dark:text-slate-400">
-              <div class="flex items-center font-semibold bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex-1">
+            <div class="px-6 py-4 border-t border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row gap-3 text-xs text-slate-500">
+              <div class="flex items-center font-semibold bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-sm flex-1">
                 <i data-lucide="globe" class="w-4 h-4 mr-2 ${theme.icon}"></i> <span class="truncate">${escapeHtml(article.source_name || 'Tidak diketahui')}</span>
               </div>
-              <div class="flex items-center font-semibold bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+              <div class="flex items-center font-semibold bg-white dark:bg-slate-800 px-3 py-2 rounded-xl shadow-sm">
                 <i data-lucide="calendar" class="w-4 h-4 mr-2 ${theme.icon}"></i> ${escapeHtml(article.source_date || '-')}
               </div>
+              ${providerName ? `<div class="flex items-center font-semibold bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-3 py-2 rounded-xl shadow-sm">
+                <i data-lucide="cpu" class="w-4 h-4 mr-2"></i> ${escapeHtml(providerName)}
+              </div>` : ''}
+            </div>
+            <div class="px-6 py-2 bg-amber-50 dark:bg-amber-900/20 border-t border-amber-100 dark:border-amber-900/50">
+              <p class="text-[10px] text-amber-700 dark:text-amber-300 font-semibold text-center">
+                ⚠️ Artikel ini dibuat dengan bantuan AI. Fakta dan kutipan telah diverifikasi terhadap sumber asli.
+              </p>
             </div>
           </div>
         `;
@@ -1006,9 +1106,7 @@
       actionBar.classList.remove('hidden');
       lucide.createIcons();
       resultsSection.classList.remove('hidden');
-      setTimeout(() => {
-        resultsSection.classList.remove('opacity-0', 'translate-y-4');
-      }, 50);
+      setTimeout(() => resultsSection.classList.remove('opacity-0', 'translate-y-4'), 50);
     }
 
     // ============================================================
@@ -1021,159 +1119,55 @@
           return true;
         }
         const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
         const ok = document.execCommand('copy');
         document.body.removeChild(ta);
         return ok;
-      } catch (e) {
-        console.error('Copy failed', e);
-        return false;
-      }
+      } catch { return false; }
     }
     async function handleCopy(index, btnElement) {
-      const article = globalArticles[index];
-      if (!article) return;
-      const textToCopy = `${article.title}\n\n${article.content}`;
-      const ok = await copyToClipboard(textToCopy);
+      const a = globalArticles[index];
+      if (!a) return;
+      const ok = await copyToClipboard(`${a.title}\n\n${a.content}`);
       if (!ok) { showToast('Gagal menyalin', 'error'); return; }
-      const iconCopy = btnElement.querySelector('.icon-copy');
-      const iconCheck = btnElement.querySelector('.icon-check');
-      iconCopy.classList.add('hidden');
-      iconCheck.classList.remove('hidden');
+      const ic = btnElement.querySelector('.icon-copy');
+      const ck = btnElement.querySelector('.icon-check');
+      ic.classList.add('hidden'); ck.classList.remove('hidden');
       showToast('Artikel disalin', 'success', 1500);
-      setTimeout(() => {
-        iconCopy.classList.remove('hidden');
-        iconCheck.classList.add('hidden');
-      }, 2000);
+      setTimeout(() => { ic.classList.remove('hidden'); ck.classList.add('hidden'); }, 2000);
     }
     async function copyAll() {
-      if (globalArticles.length === 0) return;
-      const allText = globalArticles.map((a, i) =>
-        `=== ARTIKEL ${i + 1}: ${a.title} ===\nAngle: ${a.angle}\nSumber: ${a.source_name} (${a.source_date})\n\n${a.content}`
-      ).join('\n\n' + '='.repeat(50) + '\n\n');
-      const ok = await copyToClipboard(allText);
-      showToast(ok ? 'Semua artikel disalin' : 'Gagal menyalin', ok ? 'success' : 'error');
+      if (!globalArticles.length) return;
+      const text = globalArticles.map((a, i) => `=== ARTIKEL ${i + 1}: ${a.title} ===\nAngle: ${a.angle}\nSEO Title: ${a.meta_title || '-'}\nSEO Desc: ${a.meta_description || '-'}\nSumber: ${a.source_name} (${a.source_date})\n\n${a.content}`).join('\n\n' + '='.repeat(50) + '\n\n');
+      const ok = await copyToClipboard(text);
+      showToast(ok ? 'Semua disalin' : 'Gagal', ok ? 'success' : 'error');
     }
     function exportAll(format) {
-      if (globalArticles.length === 0) return;
+      if (!globalArticles.length) return;
       const date = new Date().toISOString().slice(0, 10);
       let content, mime, ext;
       if (format === 'doc') {
-        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO Export</title>
-        <style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7;color:#1e293b}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{color:#1e293b;margin-top:40px}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}</style>
-        </head><body>
-        <h1>JURNALIS PRO - Kumpulan Berita</h1>
-        <p class="meta">Diekspor: ${new Date().toLocaleString('id-ID')}</p>
-        ${globalArticles.map((a, i) => `
-          <h2>${i + 1}. ${escapeHtml(a.title)}</h2>
-          <p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>
-          ${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}
-          <hr style="border:none;border-top:1px dashed #cbd5e1;margin:30px 0">
-        `).join('')}
-        </body></html>`;
-        content = html;
-        mime = 'application/msword';
-        ext = 'doc';
+        content = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7;color:#1e293b}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{color:#1e293b;margin-top:40px}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}.disclaimer{background:#fef3c7;padding:8px;font-size:12px;border-left:3px solid #f59e0b}</style></head><body><h1>JURNALIS PRO - Kumpulan Berita</h1><p class="meta">Diekspor: ${new Date().toLocaleString('id-ID')}</p>${globalArticles.map((a, i) => `<h2>${i + 1}. ${escapeHtml(a.title)}</h2><p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}<p class="disclaimer">Artikel ini dibuat dengan bantuan AI. Fakta dan kutipan telah diverifikasi terhadap sumber asli.</p><hr style="border:none;border-top:1px dashed #cbd5e1;margin:30px 0">`).join('')}</body></html>`;
+        mime = 'application/msword'; ext = 'doc';
       } else {
-        content = globalArticles.map((a, i) =>
-          `ARTIKEL ${i + 1}\n${'='.repeat(60)}\nJudul: ${a.title}\nAngle: ${a.angle}\nSumber: ${a.source_name} (${a.source_date})\n\n${a.content}\n\n`
-        ).join('\n');
-        mime = 'text/plain';
-        ext = 'txt';
+        content = globalArticles.map((a, i) => `ARTIKEL ${i + 1}\n${'='.repeat(60)}\nJudul: ${a.title}\nAngle: ${a.angle}\nSEO Title: ${a.meta_title || '-'}\nSEO Desc: ${a.meta_description || '-'}\nSumber: ${a.source_name} (${a.source_date})\n\n${a.content}\n\n⚠️ Artikel ini dibuat dengan bantuan AI.\n\n`).join('\n');
+        mime = 'text/plain'; ext = 'txt';
       }
       const blob = new Blob([content], { type: mime + ';charset=utf-8' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `jurnalis-pro-${date}.${ext}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const link = document.createElement('a');
+      link.href = url; link.download = `jurnalis-pro-${date}.${ext}`;
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
       URL.revokeObjectURL(url);
       showToast(`Diekspor ke .${ext}`, 'success');
     }
     function printAll() {
-      if (globalArticles.length === 0) return;
+      if (!globalArticles.length) return;
       const win = window.open('', '_blank');
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO - Print</title>
-      <style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7;color:#1e293b}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{color:#1e293b;margin-top:40px;page-break-after:avoid}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}hr{border:none;border-top:1px dashed #cbd5e1;margin:30px 0}@media print{h2{page-break-before:always}h2:first-of-type{page-break-before:auto}}</style>
-      </head><body>
-      <h1>JURNALIS PRO - Kumpulan Berita</h1>
-      <p class="meta">Dicetak: ${new Date().toLocaleString('id-ID')}</p>
-      ${globalArticles.map((a, i) => `
-        <h2>${i + 1}. ${escapeHtml(a.title)}</h2>
-        <p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>
-        ${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}
-        ${i < globalArticles.length - 1 ? '<hr>' : ''}
-      `).join('')}
-      </body></html>`);
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>JURNALIS PRO</title><style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.7}h1{color:#7c3aed;border-bottom:3px solid #7c3aed;padding-bottom:10px}h2{margin-top:40px;page-break-after:avoid}p{margin-bottom:16px;text-align:justify}.meta{color:#64748b;font-size:14px;font-style:italic;margin-bottom:20px}.disclaimer{background:#fef3c7;padding:8px;font-size:12px;border-left:3px solid #f59e0b}@media print{h2{page-break-before:always}h2:first-of-type{page-break-before:auto}}</style></head><body><h1>JURNALIS PRO</h1><p class="meta">Dicetak: ${new Date().toLocaleString('id-ID')}</p>${globalArticles.map((a, i) => `<h2>${i + 1}. ${escapeHtml(a.title)}</h2><p class="meta">Angle: ${escapeHtml(a.angle)} | Sumber: ${escapeHtml(a.source_name)} (${escapeHtml(a.source_date)})</p>${String(a.content).split(/\n\n+/).map(p => `<p>${escapeHtml(p)}</p>`).join('')}<p class="disclaimer">Artikel ini dibuat dengan bantuan AI.</p>`).join('')}</body></html>`);
       win.document.close();
-      setTimeout(() => { win.print(); }, 400);
-    }
-
-    // ============================================================
-    // REGENERATE SINGLE ARTICLE
-    // ============================================================
-    async function regenerateArticle(index) {
-      const article = globalArticles[index];
-      if (!article || isGenerating) return;
-      const activeApiKey = localStorage.getItem(API_KEY_STORAGE);
-      if (!activeApiKey) { showToast('API Key belum diatur', 'error'); return; }
-
-      const contentEl = document.getElementById(`article-content-${index}`);
-      const originalHTML = contentEl.innerHTML;
-      contentEl.innerHTML = `
-        <div class="space-y-3">
-          <div class="skeleton h-4 w-full rounded"></div>
-          <div class="skeleton h-4 w-11/12 rounded"></div>
-          <div class="skeleton h-4 w-full rounded"></div>
-          <div class="skeleton h-4 w-3/4 rounded"></div>
-        </div>
-      `;
-      showToast('Regenerate artikel...', 'info', 2000);
-      const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-      // ⚠️ MODEL TERBARU: gemini-3.5-flash-lite
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-
-      const prompt = `Tanggal: ${currentDate}\nTulis ULANG artikel berita berikut dengan sudut pandang (angle) yang SAMA namun gaya bahasa, struktur kalimat, dan pemilihan kata yang BERBEDA. Pertahankan fakta dan informasi utama.\n\nJudul Lama: ${article.title}\nAngle: ${article.angle}\nIsi Lama:\n${article.content}\n\nOUTPUT JSON valid murni:\n{\n  "article": {\n    "title": "Judul Baru",\n    "angle": "${article.angle}",\n    "content": "Isi baru minimal 5 paragraf, pisahkan dengan \\n\\n",\n    "source_name": "${article.source_name}",\n    "source_date": "${article.source_date}"\n  }\n}`;
-      try {
-        const requestBody = {
-          contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: `Kamu adalah editor jurnalis senior. Tanggal: ${currentDate}.` }] },
-        };
-        if (currentMode === 'search') {
-          requestBody.tools = [{ "google_search": {} }];
-        }
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': activeApiKey
-          },
-          body: JSON.stringify(requestBody)
-        });
-        if (!response.ok) {
-          if (response.status === 429) throw new Error('Kuota API Key Anda habis');
-          if (response.status === 404) throw new Error('Model tidak ditemukan untuk API Key Anda');
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const parsed = extractJSON(text);
-        const newArticle = parsed.article || parsed;
-        if (!newArticle?.content) throw new Error('Format tidak valid');
-        globalArticles[index] = { ...article, ...newArticle };
-        renderResults(globalArticles, globalSources);
-        showToast('Artikel berhasil di-regenerate', 'success');
-      } catch (err) {
-        contentEl.innerHTML = originalHTML;
-        showToast('Gagal regenerate: ' + err.message, 'error', 4000);
-      }
+      setTimeout(() => win.print(), 400);
     }
 
     // ============================================================
@@ -1181,40 +1175,27 @@
     // ============================================================
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
+
     window.addEventListener('scroll', () => {
       const btn = document.getElementById('btn-top');
-      if (window.scrollY > 400) {
-        btn.classList.remove('hidden');
-        btn.classList.add('flex');
-      } else {
-        btn.classList.add('hidden');
-        btn.classList.remove('flex');
-      }
+      if (window.scrollY > 400) { btn.classList.remove('hidden'); btn.classList.add('flex'); }
+      else { btn.classList.add('hidden'); btn.classList.remove('flex'); }
     });
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        const apiModal = document.getElementById('api-modal');
-        const historyModal = document.getElementById('history-modal');
-        if (!apiModal.classList.contains('hidden')) toggleApiModal();
-        if (!historyModal.classList.contains('hidden')) toggleHistoryModal();
+        if (!document.getElementById('api-modal').classList.contains('hidden')) toggleApiModal();
+        if (!document.getElementById('history-modal').classList.contains('hidden')) toggleHistoryModal();
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        generateNews();
-      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); generateNews(); }
     });
 
-    updateApiStatusIndicator();
+    updateProviderIndicators();
 
-    console.log('%cJURNALIS PRO', 'color:#7c3aed;font-size:20px;font-weight:bold');
-    console.log('%cModel: ' + GEMINI_MODEL + ' | Setiap user pakai API Key sendiri', 'color:#64748b');
+    console.log('%cJURNALIS PRO v3.0', 'color:#7c3aed;font-size:20px;font-weight:bold');
+    console.log('%cGroq + Cerebras (tertanam) → Gemini (user optional)', 'color:#64748b');
   </script>
 </body>
 </html>
