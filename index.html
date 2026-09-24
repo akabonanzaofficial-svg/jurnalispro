@@ -243,39 +243,39 @@
 
       <div class="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
         <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed">
-          <b>Gemini</b> (opsional) diutamakan jika Anda isi API Key pribadi. Jika tidak, aplikasi otomatis memakai <b>Groq & Cerebras</b> yang tertanam.
+          <b>Groq, Cerebras, dan SambaNova</b> adalah provider yang tertanam. Isi API Key pribadi Anda untuk masing-masing agar aplikasi bisa berjalan.
         </p>
       </div>
 
-      <!-- Gemini (Optional - User Input) -->
+      <!-- SambaNova (Embedded - User Input) -->
       <div class="mb-3 p-4 rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 bg-violet-50/50 dark:bg-violet-900/10">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-              <i data-lucide="gem" class="w-4 h-4 text-violet-600"></i>
+              <i data-lucide="server" class="w-4 h-4 text-violet-600"></i>
             </div>
             <div>
-              <p class="font-bold text-sm">Gemini (Flash-Lite)</p>
-              <p class="text-[10px] text-slate-500">Prioritas Utama • Opsional</p>
+              <p class="font-bold text-sm">SambaNova (Llama 3.3 70B)</p>
+              <p class="text-[10px] text-slate-500">Fallback 3 • User Input</p>
             </div>
           </div>
-          <span id="gemini-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
+          <span id="sambanova-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
         </div>
 
         <div class="relative mb-2">
-          <input type="password" id="input-gemini-key" placeholder="Tempel Gemini API Key (opsional)..." class="w-full p-3 pr-12 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 outline-none font-mono text-xs">
-          <button type="button" onclick="toggleKeyVisibility('input-gemini-key','gemini-eye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 p-1.5">
-            <i data-lucide="eye" id="gemini-eye" class="w-4 h-4"></i>
+          <input type="password" id="input-sambanova-key" placeholder="Tempel SambaNova API Key..." class="w-full p-3 pr-12 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-violet-400 outline-none font-mono text-xs">
+          <button type="button" onclick="toggleKeyVisibility('input-sambanova-key','sambanova-eye')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-violet-600 p-1.5">
+            <i data-lucide="eye" id="sambanova-eye" class="w-4 h-4"></i>
           </button>
         </div>
-        <p id="gemini-key-status" class="text-xs font-semibold pl-1 min-h-[16px] mb-2"></p>
+        <p id="sambanova-key-status" class="text-xs font-semibold pl-1 min-h-[16px] mb-2"></p>
 
         <div class="flex gap-2">
-          <button onclick="testGemini()" id="btn-test-gemini" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-900/50 hover:bg-violet-50 transition-colors flex items-center justify-center">
+          <button onclick="testSambaNova()" id="btn-test-sambanova" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-violet-700 dark:text-violet-300 bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-900/50 hover:bg-violet-50 transition-colors flex items-center justify-center">
             <i data-lucide="flask-conical" class="w-3.5 h-3.5 mr-1.5"></i>
-            <span id="test-gemini-text">Test</span>
+            <span id="test-sambanova-text">Test</span>
           </button>
-          <button onclick="deleteGeminiKey()" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-red-600 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 hover:bg-red-50 transition-colors flex items-center justify-center">
+          <button onclick="deleteSambaNovaKey()" class="flex-1 py-2.5 rounded-lg font-bold text-xs text-red-600 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-900/50 hover:bg-red-50 transition-colors flex items-center justify-center">
             <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i>
             Hapus
           </button>
@@ -290,7 +290,7 @@
               <i data-lucide="zap" class="w-4 h-4 text-orange-600"></i>
             </div>
             <div>
-              <p class="font-bold text-sm">Groq (Qwen3-32B)</p>
+              <p class="font-bold text-sm">Groq (GPT-OSS-120B)</p>
               <p class="text-[10px] text-slate-500">Fallback 1 • Tertanam</p>
             </div>
           </div>
@@ -316,7 +316,7 @@
 
       <div class="flex gap-3 mt-4">
         <button onclick="toggleApiModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200">Tutup</button>
-        <button onclick="saveGeminiKey()" class="flex-1 py-3 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700">Simpan Gemini</button>
+        <button onclick="saveAllKeys()" class="flex-1 py-3 rounded-xl font-bold text-white bg-violet-600 hover:bg-violet-700">Simpan Semua</button>
       </div>
     </div>
   </div>
@@ -347,28 +347,16 @@
     const EMBEDDED_KEYS = {
       groq: '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',
       cerebras: 'csk-hh4v4cnycffpr93krdt4p388pcd3pvj4cnj3nwd242xx2kmr'
+      // sambanova diisi oleh user via localStorage
     };
 
     const PROVIDERS = [
       {
-        id: 'gemini',
-        name: 'Gemini',
-        subtitle: 'Flash-Lite',
-        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
-        model: 'gemini-2.5-flash-lite',
-        format: 'gemini',
-        getKey: () => localStorage.getItem('jurnalis_gemini_key'),
-        isConfigured: () => {
-          const k = localStorage.getItem('jurnalis_gemini_key');
-          return k && /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(k);
-        }
-      },
-      {
-  id: 'groq',
-  name: 'Groq',
-  subtitle: 'GPT-OSS-120B',
-  url: 'https://api.groq.com/openai/v1/chat/completions',
-  model: 'openai/gpt-oss-120b',
+        id: 'groq',
+        name: 'Groq',
+        subtitle: 'GPT-OSS-120B',
+        url: 'https://api.groq.com/openai/v1/chat/completions',
+        model: 'openai/gpt-oss-120b',
         format: 'openai',
         getKey: () => EMBEDDED_KEYS.groq,
         isConfigured: () => EMBEDDED_KEYS.groq && !EMBEDDED_KEYS.groq.includes('xxxx')
@@ -382,6 +370,19 @@
         format: 'openai',
         getKey: () => EMBEDDED_KEYS.cerebras,
         isConfigured: () => EMBEDDED_KEYS.cerebras && !EMBEDDED_KEYS.cerebras.includes('xxxx')
+      },
+      {
+        id: 'sambanova',
+        name: 'SambaNova',
+        subtitle: 'Llama 3.3 70B',
+        url: 'https://api.sambanova.ai/v1/chat/completions',
+        model: 'Meta-Llama-3.3-70B-Instruct',
+        format: 'openai',
+        getKey: () => localStorage.getItem('jurnalis_sambanova_key'),
+        isConfigured: () => {
+          const k = localStorage.getItem('jurnalis_sambanova_key');
+          return k && k.length > 20;
+        }
       }
     ];
 
@@ -479,11 +480,11 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     function updateProviderModalStatus() {
-      const geminiEl = document.getElementById('gemini-status');
       const groqEl = document.getElementById('groq-status');
       const cerebEl = document.getElementById('cerebras-status');
+      const sambaEl = document.getElementById('sambanova-status');
       
-      [geminiEl, groqEl, cerebEl].forEach((el, i) => {
+      [groqEl, cerebEl, sambaEl].forEach((el, i) => {
         const p = PROVIDERS[i];
         if (p.isConfigured()) {
           el.textContent = '✓ Aktif';
@@ -520,9 +521,9 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       const content = document.getElementById('api-modal-content');
       if (modal.classList.contains('hidden')) {
         modal.classList.remove('hidden');
-        const stored = localStorage.getItem('jurnalis_gemini_key') || '';
-        document.getElementById('input-gemini-key').value = stored;
-        validateGeminiKey();
+        const storedSamba = localStorage.getItem('jurnalis_sambanova_key') || '';
+        document.getElementById('input-sambanova-key').value = storedSamba;
+        validateSambaNovaKey();
         updateProviderModalStatus();
         setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
       } else {
@@ -540,68 +541,64 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       lucide.createIcons();
     }
 
-    function validateGeminiKey() {
-      const key = document.getElementById('input-gemini-key').value.trim();
-      const el = document.getElementById('gemini-key-status');
+    function validateSambaNovaKey() {
+      const key = document.getElementById('input-sambanova-key').value.trim();
+      const el = document.getElementById('sambanova-key-status');
       if (!key) { el.textContent = ''; el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2'; return; }
-      const valid = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(key);
-      if (valid) {
+      if (key.length > 20) {
         el.innerHTML = '✓ Format valid';
         el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2 text-emerald-600';
       } else {
-        el.innerHTML = '⚠ Format tidak valid';
+        el.innerHTML = '⚠ Kunci terlalu pendek';
         el.className = 'text-xs font-semibold pl-1 min-h-[16px] mb-2 text-amber-600';
       }
     }
-    document.getElementById('input-gemini-key').addEventListener('input', validateGeminiKey);
+    document.getElementById('input-sambanova-key').addEventListener('input', validateSambaNovaKey);
 
-    function saveGeminiKey() {
-      const key = document.getElementById('input-gemini-key').value.trim();
-      if (key && !/^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(key)) {
-        showToast('Format API Key tidak valid', 'warning');
-        return;
-      }
-      if (key) {
-        localStorage.setItem('jurnalis_gemini_key', key);
-        showToast('Gemini API Key disimpan sebagai prioritas utama', 'success');
+    function saveAllKeys() {
+      const sambaKey = document.getElementById('input-sambanova-key').value.trim();
+      if (sambaKey) {
+        localStorage.setItem('jurnalis_sambanova_key', sambaKey);
+        showToast('SambaNova API Key disimpan', 'success');
       } else {
-        localStorage.removeItem('jurnalis_gemini_key');
-        showToast('Gemini API Key dihapus', 'info');
+        localStorage.removeItem('jurnalis_sambanova_key');
+        showToast('SambaNova API Key dihapus', 'info');
       }
       updateProviderIndicators();
       updateProviderModalStatus();
       toggleApiModal();
     }
 
-    function deleteGeminiKey() {
-      if (!confirm('Hapus Gemini API Key?')) return;
-      localStorage.removeItem('jurnalis_gemini_key');
-      document.getElementById('input-gemini-key').value = '';
-      validateGeminiKey();
+    function deleteSambaNovaKey() {
+      if (!confirm('Hapus SambaNova API Key?')) return;
+      localStorage.removeItem('jurnalis_sambanova_key');
+      document.getElementById('input-sambanova-key').value = '';
+      validateSambaNovaKey();
       updateProviderIndicators();
       updateProviderModalStatus();
-      showToast('Gemini API Key dihapus', 'info');
+      showToast('SambaNova API Key dihapus', 'info');
     }
 
-    async function testGemini() {
-      const key = document.getElementById('input-gemini-key').value.trim();
+    async function testSambaNova() {
+      const key = document.getElementById('input-sambanova-key').value.trim();
       if (!key) { showToast('Masukkan API Key dulu', 'warning'); return; }
-      if (!/^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(key)) {
-        showToast('Format tidak valid', 'error'); return;
-      }
-      const btn = document.getElementById('btn-test-gemini');
-      const text = document.getElementById('test-gemini-text');
+      const btn = document.getElementById('btn-test-sambanova');
+      const text = document.getElementById('test-sambanova-text');
       text.textContent = 'Menguji...';
       btn.disabled = true;
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`, {
+        const res = await fetch('https://api.sambanova.ai/v1/chat/completions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-          body: JSON.stringify({ contents: [{ parts: [{ text: 'Halo' }] }] })
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+          body: JSON.stringify({
+            model: 'Meta-Llama-3.3-70B-Instruct',
+            messages: [{ role: 'user', content: 'Halo' }],
+            max_tokens: 20
+          })
         });
-        if (res.ok) showToast('✓ Gemini API Key valid', 'success', 4000);
+        if (res.ok) showToast('✓ SambaNova API Key valid', 'success', 4000);
         else if (res.status === 429) showToast('Valid, tapi kuota penuh', 'warning', 4000);
-        else if (res.status === 404) showToast('Model tidak ditemukan untuk Key ini', 'error', 5000);
+        else if (res.status === 401) showToast('API Key ditolak', 'error', 4000);
         else showToast('Ditolak: HTTP ' + res.status, 'error', 4000);
       } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
       finally { text.textContent = 'Test'; btn.disabled = false; }
@@ -769,7 +766,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     // ============================================================
-    // FETCH NEWS FROM RSS (FIXED: multi-proxy fallback)
+    // FETCH NEWS FROM RSS
     // ============================================================
     async function fetchNewsFromRSS(topic) {
       const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic)}+when:3d&hl=id-ID&gl=ID&ceid=ID:id`;
@@ -875,7 +872,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     // ============================================================
-    // GENERATE NEWS (Multi-Provider Fallback dengan Gemini Prioritas)
+    // GENERATE NEWS (Multi-Provider Fallback)
     // ============================================================
     async function generateNews() {
       if (isGenerating) return;
@@ -950,16 +947,16 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       const systemInstruction = JOURNALISM_RULES;
 
       // ============ FALLBACK CHAIN ============
-      // Prioritas: Gemini (user) → Groq → Cerebras
+      // Prioritas: Groq → Cerebras → SambaNova (user)
       const configuredProviders = [
-        PROVIDERS.find(p => p.id === 'gemini'),
         PROVIDERS.find(p => p.id === 'groq'),
-        PROVIDERS.find(p => p.id === 'cerebras')
+        PROVIDERS.find(p => p.id === 'cerebras'),
+        PROVIDERS.find(p => p.id === 'sambanova')
       ].filter(p => p && p.isConfigured());
 
       if (configuredProviders.length === 0) {
         setLoading(false);
-        showError('<b>Tidak ada provider AI yang tersedia!</b><br><br>Developer belum mengkonfigurasi Groq/Cerebras API Key, dan Anda belum mengisi Gemini API Key.<br><br>Silakan isi Gemini API Key Anda di menu ⚙️ Pengaturan.');
+        showError('<b>Tidak ada provider AI yang tersedia!</b><br><br>Developer belum mengkonfigurasi Groq/Cerebras API Key, dan Anda belum mengisi SambaNova API Key.<br><br>Silakan isi SambaNova API Key Anda di menu ⚙️ Pengaturan.<br><br>Daftar gratis di <a href="https://cloud.sambanova.ai" target="_blank" class="underline font-bold">cloud.sambanova.ai</a>');
         showToast('Tidak ada provider tersedia', 'error');
         return;
       }
@@ -989,12 +986,6 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
           if (articles.length === 0) throw new Error('Tidak ada artikel');
 
           let sources = rssSources.map(s => ({ uri: s.link, title: s.source }));
-          if (provider.format === 'gemini') {
-            const geminiSources = (result.raw.candidates?.[0]?.groundingMetadata?.groundingAttributions || [])
-              .map(a => ({ uri: a.web?.uri, title: a.web?.title }))
-              .filter(s => s.uri && s.title);
-            sources = [...geminiSources, ...sources];
-          }
           sources = Array.from(new Map(sources.map(item => [item.uri, item])).values()).slice(0, 5);
 
           usedProvider = `${provider.name} (${provider.subtitle})`;
@@ -1048,7 +1039,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
           showError('<b>Semua provider AI sedang sibuk atau gagal.</b><br><br>' +
             '<b>Solusi:</b><br>' +
             '• Tunggu 1-2 menit lalu coba lagi<br>' +
-            '• Isi Gemini API Key Anda di menu ⚙️ sebagai prioritas<br>' +
+            '• Isi SambaNova API Key di menu ⚙️ sebagai cadangan<br>' +
             '• Pastikan Groq/Cerebras API Key masih aktif' + errorDetail);
           showToast('Semua provider gagal', 'error');
         }
@@ -1240,8 +1231,8 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
 
     updateProviderIndicators();
 
-    console.log('%cJURNALIS PRO v3.1', 'color:#7c3aed;font-size:20px;font-weight:bold');
-    console.log('%cPrioritas: Gemini (user) → Groq → Cerebras', 'color:#64748b');
+    console.log('%cJURNALIS PRO v4.0', 'color:#7c3aed;font-size:20px;font-weight:bold');
+    console.log('%cProvider: Groq → Cerebras → SambaNova (user)', 'color:#64748b');
   </script>
 </body>
 </html>
