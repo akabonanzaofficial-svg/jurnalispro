@@ -814,63 +814,49 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     // CALL PROVIDER
     // ============================================================
     async function callProvider(provider, prompt, systemInstruction) {
-      const apiKey = provider.getKey();
-      if (!apiKey) throw new Error('API Key tidak tersedia');
+  // ⚠️ GANTI dengan URL Web App GAS Anda dari Langkah 3
+  const GAS_PROXY_URL = 'https://script.google.com/macros/s/AKfycbxxxxxxxxxxxxxxxx/exec';
 
-      let url, headers, body;
+  const requestBody = {
+    model: provider.model,
+    messages: [
+      { role: 'system', content: systemInstruction },
+      { role: 'user', content: prompt }
+    ],
+    temperature: 0.7,
+    max_tokens: 4000
+  };
 
-      if (provider.format === 'openai') {
-        url = provider.url;
-        headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        };
-        body = {
-          model: provider.model,
-          messages: [
-            { role: 'system', content: systemInstruction },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 4000
-        };
-      } else {
-        url = provider.url;
-        headers = {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey
-        };
-        body = {
-          contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: systemInstruction }] }
-        };
-      }
+  const response = await fetch(GAS_PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      provider: provider.id, // 'groq', 'cerebras', 'sambanova'
+      body: requestBody
+    })
+  });
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body)
-      });
+  if (!response.ok) {
+    const errText = await response.text();
+    const err = new Error(`GAS Proxy Error: ${response.status}`);
+    err.status = response.status;
+    err.detail = errText;
+    throw err;
+  }
 
-      if (!res.ok) {
-        const errText = await res.text();
-        const err = new Error(`HTTP ${res.status}`);
-        err.status = res.status;
-        err.detail = errText;
-        console.error(`[${provider.name}] Error ${res.status}:`, errText.substring(0, 200));
-        throw err;
-      }
+  const data = await response.json();
+  
+  // Tangani error dari GAS
+  if (data.error) {
+    const err = new Error(data.error);
+    err.status = 500;
+    throw err;
+  }
 
-      const data = await res.json();
-      let text = '';
-      if (provider.format === 'openai') {
-        text = data.choices?.[0]?.message?.content || '';
-      } else {
-        text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      }
-      return { text, raw: data };
-    }
-
+  // Ambil teks AI (format OpenAI-compatible)
+  const text = data.choices?.[0]?.message?.content || '';
+  return { text, raw: data };
+}
     // ============================================================
     // GENERATE NEWS (Multi-Provider Fallback)
     // ============================================================
