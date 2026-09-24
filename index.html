@@ -232,7 +232,6 @@
         </button>
       </div>
 
-      <!-- Info Penting -->
       <div class="p-4 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
         <div class="flex items-start gap-2 mb-2">
           <i data-lucide="info" class="w-4 h-4 text-violet-600 flex-shrink-0 mt-0.5"></i>
@@ -246,7 +245,6 @@
         </p>
       </div>
 
-      <!-- Cara Mendapatkan API Key -->
       <details class="mb-4 group">
         <summary class="cursor-pointer text-xs font-bold text-violet-600 hover:text-violet-700 flex items-center select-none">
           <i data-lucide="help-circle" class="w-3.5 h-3.5 mr-1.5 group-open:rotate-90 transition-transform"></i>
@@ -273,7 +271,6 @@
       </div>
       <p id="api-key-status" class="text-xs font-semibold mb-4 pl-1 min-h-[16px]"></p>
 
-      <!-- Tombol Aksi -->
       <div class="flex gap-2 mb-3">
         <button onclick="testApiKey()" id="btn-test-key" class="flex-1 py-3 rounded-xl font-bold text-sm text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-900/30 hover:bg-violet-100 dark:hover:bg-violet-900/50 border border-violet-200 dark:border-violet-900/50 transition-colors flex items-center justify-center">
           <i data-lucide="flask-conical" class="w-4 h-4 mr-1.5"></i>
@@ -329,6 +326,10 @@
 
     const MAX_HISTORY = 20;
     const API_KEY_STORAGE = 'jurnalis_gemini_api_key';
+
+    // ⚠️ MODEL TERBARU: gemini-3.5-flash-lite
+    // Model ini kompatibel dengan API Key format baru (AQ.) dan lama (AIzaSy)
+    const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
     // Support format baru AQ. dan format lama AIzaSy
     const API_KEY_REGEX = /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/;
@@ -537,7 +538,8 @@
       btn.disabled = true;
 
       try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`;
+        // ⚠️ Model terbaru: gemini-3.5-flash-lite
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
         const response = await fetch(url, {
           method: 'POST',
           headers: {
@@ -556,6 +558,8 @@
         } else if (response.status === 400 || response.status === 403) {
           const err = await response.json().catch(() => ({}));
           showToast('API Key ditolak: ' + (err?.error?.message || 'Tidak valid'), 'error', 5000);
+        } else if (response.status === 404) {
+          showToast('Model tidak ditemukan. Hubungi developer.', 'error', 5000);
         } else {
           showToast('Respons tidak terduga: HTTP ' + response.status, 'error', 4000);
         }
@@ -773,7 +777,6 @@
         return;
       }
 
-      // ⚠️ Ambil API Key dari localStorage USER, bukan dari developer
       const activeApiKey = localStorage.getItem(API_KEY_STORAGE);
       if (!activeApiKey) {
         showError('<b>API Key belum diatur!</b><br>Klik ikon <b>🔑 Kunci</b> di pojok kanan atas untuk memasukkan Gemini API Key Anda sendiri.<br><br>Setiap user wajib menggunakan API Key-nya sendiri agar kuota tidak bertabrakan.');
@@ -797,8 +800,8 @@
       const lengthOption = document.getElementById('input-length').value;
       const extraInstruction = document.getElementById('input-extra').value.trim();
 
-      // Gunakan gemini-2.5-flash-lite yang lebih hemat kuota
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`;
+      // ⚠️ MODEL TERBARU: gemini-3.5-flash-lite
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
       let styleInstruction = "";
@@ -862,8 +865,11 @@
             if (response.status === 429) {
               throw new Error(`<b>Kuota API Key Anda Habis (429)</b><br>Anda telah mencapai batas permintaan Gemini API.<br><br><b>Solusi:</b><br>• Tunggu 1-2 menit jika limit per menit<br>• Tunggu hingga besok jika limit harian<br>• Gunakan API Key dari akun Google lain<br><br><i>Pesan asli: ${errorMessage}</i>`);
             }
-            if (response.status === 400 || response.status === 403 || response.status === 404) {
+            if (response.status === 400 || response.status === 403) {
               throw new Error(`<b>API Key Ditolak (Status: ${response.status})</b><br>Pesan: <i>${errorMessage}</i><br><br>Pastikan API Key valid dan aktif. Coba klik tombol <b>Test Koneksi</b> di menu 🔑.`);
+            }
+            if (response.status === 404) {
+              throw new Error(`<b>Model Tidak Ditemukan (404)</b><br>Model <code>${GEMINI_MODEL}</code> tidak tersedia untuk API Key Anda.<br><br>Kemungkinan penyebab:<br>• API Key Anda belum memiliki akses ke model ini<br>• Region Anda tidak mendukung model ini<br><br>Silakan buat API Key baru di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold">Google AI Studio</a>.`);
             }
             throw new Error(`Gagal menghubungi server (${response.status}): ${errorMessage}`);
           }
@@ -898,7 +904,7 @@
 
         } catch (err) {
           lastError = err;
-          const fatal = err.message.includes("Kuota API Key") || err.message.includes("API Key Ditolak") || err.message.includes("Format respons") || err.message.includes("tidak mengembalikan");
+          const fatal = err.message.includes("Kuota API Key") || err.message.includes("API Key Ditolak") || err.message.includes("Model Tidak Ditemukan") || err.message.includes("Format respons") || err.message.includes("tidak mengembalikan");
           if (i === 5 || fatal) break;
           await new Promise(r => setTimeout(r, delays[i]));
         }
@@ -1130,7 +1136,9 @@
       `;
       showToast('Regenerate artikel...', 'info', 2000);
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent`;
+
+      // ⚠️ MODEL TERBARU: gemini-3.5-flash-lite
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
       const prompt = `Tanggal: ${currentDate}\nTulis ULANG artikel berita berikut dengan sudut pandang (angle) yang SAMA namun gaya bahasa, struktur kalimat, dan pemilihan kata yang BERBEDA. Pertahankan fakta dan informasi utama.\n\nJudul Lama: ${article.title}\nAngle: ${article.angle}\nIsi Lama:\n${article.content}\n\nOUTPUT JSON valid murni:\n{\n  "article": {\n    "title": "Judul Baru",\n    "angle": "${article.angle}",\n    "content": "Isi baru minimal 5 paragraf, pisahkan dengan \\n\\n",\n    "source_name": "${article.source_name}",\n    "source_date": "${article.source_date}"\n  }\n}`;
       try {
@@ -1151,6 +1159,7 @@
         });
         if (!response.ok) {
           if (response.status === 429) throw new Error('Kuota API Key Anda habis');
+          if (response.status === 404) throw new Error('Model tidak ditemukan untuk API Key Anda');
           throw new Error(`HTTP ${response.status}`);
         }
         const data = await response.json();
@@ -1202,11 +1211,10 @@
       }
     });
 
-    // Cek status API Key saat halaman dimuat
     updateApiStatusIndicator();
 
     console.log('%cJURNALIS PRO', 'color:#7c3aed;font-size:20px;font-weight:bold');
-    console.log('%cSetiap user memakai API Key sendiri | Ctrl+Enter = Generate', 'color:#64748b');
+    console.log('%cModel: ' + GEMINI_MODEL + ' | Setiap user pakai API Key sendiri', 'color:#64748b');
   </script>
 </body>
 </html>
