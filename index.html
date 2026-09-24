@@ -243,41 +243,11 @@
 
       <div class="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-xl border border-violet-100 dark:border-violet-900/50 mb-4">
         <p class="text-xs text-violet-700 dark:text-violet-300 leading-relaxed">
-          <b>Groq & Cerebras</b> adalah provider utama yang tertanam di aplikasi — gratis, tanpa perlu Anda isi apapun.<br>
-          <b>Gemini</b> bersifat <b>opsional</b> — isi API Key pribadi Anda sebagai cadangan jika kuota gratis utama habis.
+          <b>Gemini</b> (opsional) diutamakan jika Anda isi API Key pribadi. Jika tidak, aplikasi otomatis memakai <b>Groq & Cerebras</b> yang tertanam.
         </p>
       </div>
 
-      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-              <i data-lucide="zap" class="w-4 h-4 text-orange-600"></i>
-            </div>
-            <div>
-              <p class="font-bold text-sm">Groq (Qwen3-32B)</p>
-              <p class="text-[10px] text-slate-500">Provider Utama • Tertanam</p>
-            </div>
-          </div>
-          <span id="groq-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
-        </div>
-      </div>
-
-      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-              <i data-lucide="cpu" class="w-4 h-4 text-emerald-600"></i>
-            </div>
-            <div>
-              <p class="font-bold text-sm">Cerebras (GPT-OSS-120B)</p>
-              <p class="text-[10px] text-slate-500">Fallback 1 • Tertanam</p>
-            </div>
-          </div>
-          <span id="cerebras-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
-        </div>
-      </div>
-
+      <!-- Gemini (Optional - User Input) -->
       <div class="mb-3 p-4 rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-700 bg-violet-50/50 dark:bg-violet-900/10">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
@@ -286,7 +256,7 @@
             </div>
             <div>
               <p class="font-bold text-sm">Gemini (Flash-Lite)</p>
-              <p class="text-[10px] text-slate-500">Fallback 2 • Opsional oleh User</p>
+              <p class="text-[10px] text-slate-500">Prioritas Utama • Opsional</p>
             </div>
           </div>
           <span id="gemini-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
@@ -309,6 +279,38 @@
             <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i>
             Hapus
           </button>
+        </div>
+      </div>
+
+      <!-- Groq (Embedded) -->
+      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+              <i data-lucide="zap" class="w-4 h-4 text-orange-600"></i>
+            </div>
+            <div>
+              <p class="font-bold text-sm">Groq (Qwen3-32B)</p>
+              <p class="text-[10px] text-slate-500">Fallback 1 • Tertanam</p>
+            </div>
+          </div>
+          <span id="groq-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
+        </div>
+      </div>
+
+      <!-- Cerebras (Embedded) -->
+      <div class="mb-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+              <i data-lucide="cpu" class="w-4 h-4 text-emerald-600"></i>
+            </div>
+            <div>
+              <p class="font-bold text-sm">Cerebras (GPT-OSS-120B)</p>
+              <p class="text-[10px] text-slate-500">Fallback 2 • Tertanam</p>
+            </div>
+          </div>
+          <span id="cerebras-status" class="text-[10px] font-bold px-2 py-1 rounded-full"></span>
         </div>
       </div>
 
@@ -340,7 +342,7 @@
 
   <script>
     // ============================================================
-    // KONFIGURASI PROVIDER — API KEY SUDAH DITANAM
+    // KONFIGURASI PROVIDER
     // ============================================================
     const EMBEDDED_KEYS = {
       groq: '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',
@@ -348,6 +350,19 @@
     };
 
     const PROVIDERS = [
+      {
+        id: 'gemini',
+        name: 'Gemini',
+        subtitle: 'Flash-Lite',
+        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
+        model: 'gemini-2.5-flash-lite',
+        format: 'gemini',
+        getKey: () => localStorage.getItem('jurnalis_gemini_key'),
+        isConfigured: () => {
+          const k = localStorage.getItem('jurnalis_gemini_key');
+          return k && /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(k);
+        }
+      },
       {
         id: 'groq',
         name: 'Groq',
@@ -367,19 +382,6 @@
         format: 'openai',
         getKey: () => EMBEDDED_KEYS.cerebras,
         isConfigured: () => EMBEDDED_KEYS.cerebras && !EMBEDDED_KEYS.cerebras.includes('xxxx')
-      },
-      {
-        id: 'gemini',
-        name: 'Gemini',
-        subtitle: 'Flash-Lite (User)',
-        url: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent',
-        model: 'gemini-2.5-flash-lite',
-        format: 'gemini',
-        getKey: () => localStorage.getItem('jurnalis_gemini_key'),
-        isConfigured: () => {
-          const k = localStorage.getItem('jurnalis_gemini_key');
-          return k && /^(AIzaSy[0-9A-Za-z_-]{33}|AQ\.[0-9A-Za-z_.-]{20,})$/.test(k);
-        }
       }
     ];
 
@@ -477,11 +479,11 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     function updateProviderModalStatus() {
+      const geminiEl = document.getElementById('gemini-status');
       const groqEl = document.getElementById('groq-status');
       const cerebEl = document.getElementById('cerebras-status');
-      const geminiEl = document.getElementById('gemini-status');
       
-      [groqEl, cerebEl, geminiEl].forEach((el, i) => {
+      [geminiEl, groqEl, cerebEl].forEach((el, i) => {
         const p = PROVIDERS[i];
         if (p.isConfigured()) {
           el.textContent = '✓ Aktif';
@@ -561,7 +563,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       }
       if (key) {
         localStorage.setItem('jurnalis_gemini_key', key);
-        showToast('Gemini API Key disimpan sebagai cadangan', 'success');
+        showToast('Gemini API Key disimpan sebagai prioritas utama', 'success');
       } else {
         localStorage.removeItem('jurnalis_gemini_key');
         showToast('Gemini API Key dihapus', 'info');
@@ -599,6 +601,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
         });
         if (res.ok) showToast('✓ Gemini API Key valid', 'success', 4000);
         else if (res.status === 429) showToast('Valid, tapi kuota penuh', 'warning', 4000);
+        else if (res.status === 404) showToast('Model tidak ditemukan untuk Key ini', 'error', 5000);
         else showToast('Ditolak: HTTP ' + res.status, 'error', 4000);
       } catch (e) { showToast('Gagal: ' + e.message, 'error'); }
       finally { text.textContent = 'Test'; btn.disabled = false; }
@@ -766,29 +769,48 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     // ============================================================
-    // FETCH NEWS FROM RSS
+    // FETCH NEWS FROM RSS (FIXED: multi-proxy fallback)
     // ============================================================
     async function fetchNewsFromRSS(topic) {
       const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(topic)}+when:3d&hl=id-ID&gl=ID&ceid=ID:id`;
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
-      try {
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error('RSS fetch failed');
-        const text = await res.text();
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(text, 'text/xml');
-        const items = Array.from(xml.querySelectorAll('item')).slice(0, 5);
-        return items.map(item => ({
-          title: item.querySelector('title')?.textContent || '',
-          link: item.querySelector('link')?.textContent || '',
-          pubDate: item.querySelector('pubDate')?.textContent || '',
-          source: item.querySelector('source')?.textContent || 'Google News',
-          description: item.querySelector('description')?.textContent || ''
-        }));
-      } catch (e) {
-        console.warn('RSS fetch error:', e);
-        return [];
+      
+      const proxies = [
+        `https://corsproxy.io/?url=${encodeURIComponent(rssUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`,
+        `https://thingproxy.freeboard.io/fetch/${rssUrl}`
+      ];
+      
+      for (const proxyUrl of proxies) {
+        try {
+          const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+          if (!res.ok) continue;
+          
+          const text = await res.text();
+          if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) continue;
+          
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(text, 'text/xml');
+          if (xml.querySelector('parsererror')) continue;
+          
+          const items = Array.from(xml.querySelectorAll('item')).slice(0, 5);
+          if (items.length === 0) continue;
+          
+          console.log('RSS berhasil via:', proxyUrl.substring(0, 40));
+          return items.map(item => ({
+            title: item.querySelector('title')?.textContent || '',
+            link: item.querySelector('link')?.textContent || '',
+            pubDate: item.querySelector('pubDate')?.textContent || '',
+            source: item.querySelector('source')?.textContent || 'Google News',
+            description: item.querySelector('description')?.textContent || ''
+          }));
+        } catch (e) {
+          console.warn('Proxy gagal:', e.message);
+          continue;
+        }
       }
+      
+      console.warn('Semua proxy RSS gagal — lanjut tanpa berita terbaru');
+      return [];
     }
 
     // ============================================================
@@ -838,6 +860,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
         const err = new Error(`HTTP ${res.status}`);
         err.status = res.status;
         err.detail = errText;
+        console.error(`[${provider.name}] Error ${res.status}:`, errText.substring(0, 200));
         throw err;
       }
 
@@ -852,7 +875,7 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
     }
 
     // ============================================================
-    // GENERATE NEWS
+    // GENERATE NEWS (Multi-Provider Fallback dengan Gemini Prioritas)
     // ============================================================
     async function generateNews() {
       if (isGenerating) return;
@@ -880,16 +903,19 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
 
       const currentDate = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
+      // Fetch berita dari RSS (hanya mode search)
       let newsContext = '';
       let rssSources = [];
       if (currentMode === 'search') {
-        showToast('Mencari berita terbaru...', 'info', 2000);
+        showToast('Mencari berita terbaru (3 hari terakhir)...', 'info', 2500);
         rssSources = await fetchNewsFromRSS(topic);
         if (rssSources.length > 0) {
           newsContext = '\n\n【BAHAN BERITA DARI GOOGLE NEWS (3 HARI TERAKHIR)】\n' +
             rssSources.map((n, i) => `${i + 1}. ${n.title}\n   Sumber: ${n.source}\n   Tanggal: ${n.pubDate}\n   Ringkasan: ${n.description.replace(/<[^>]*>/g, '').substring(0, 200)}`).join('\n\n');
+          showToast(`Ditemukan ${rssSources.length} berita terbaru`, 'success', 2000);
         } else {
-          newsContext = '\n\n【CATATAN】Tidak ada berita terbaru ditemukan. AI akan menggunakan pengetahuan internal, tapi HARUS tetap pada fakta yang tersedia.';
+          newsContext = '\n\n【CATATAN】Tidak ada berita terbaru ditemukan dari Google News. AI akan menggunakan pengetahuan internal, tapi HARUS tetap pada fakta yang tersedia dan tandai jika ada ketidakpastian.';
+          showToast('Tidak ada berita terbaru, lanjut tanpa bahan', 'warning', 3000);
         }
       }
 
@@ -923,7 +949,14 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
 
       const systemInstruction = JOURNALISM_RULES;
 
-      const configuredProviders = PROVIDERS.filter(p => p.isConfigured());
+      // ============ FALLBACK CHAIN ============
+      // Prioritas: Gemini (user) → Groq → Cerebras
+      const configuredProviders = [
+        PROVIDERS.find(p => p.id === 'gemini'),
+        PROVIDERS.find(p => p.id === 'groq'),
+        PROVIDERS.find(p => p.id === 'cerebras')
+      ].filter(p => p && p.isConfigured());
+
       if (configuredProviders.length === 0) {
         setLoading(false);
         showError('<b>Tidak ada provider AI yang tersedia!</b><br><br>Developer belum mengkonfigurasi Groq/Cerebras API Key, dan Anda belum mengisi Gemini API Key.<br><br>Silakan isi Gemini API Key Anda di menu ⚙️ Pengaturan.');
@@ -935,8 +968,16 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       let lastError = null;
       let usedProvider = '';
 
-      for (const provider of configuredProviders) {
+      for (let i = 0; i < configuredProviders.length; i++) {
+        const provider = configuredProviders[i];
         if (requestId !== currentRequestId) return;
+        
+        // Delay 3 detik sebelum fallback (kecuali provider pertama)
+        if (i > 0) {
+          showToast(`Menunggu 3 detik sebelum mencoba ${provider.name}...`, 'info', 2500);
+          await new Promise(r => setTimeout(r, 3000));
+        }
+        
         try {
           showToast(`Mencoba ${provider.name}...`, 'info', 1500);
           const result = await callProvider(provider, promptText, systemInstruction);
@@ -988,6 +1029,10 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
             showToast(`${provider.name} API Key ditolak, coba provider lain...`, 'warning', 2500);
             continue;
           }
+          if (err.status === 404) {
+            showToast(`${provider.name} model tidak ditemukan, coba provider lain...`, 'warning', 2500);
+            continue;
+          }
           if (err.message.includes('JSON')) {
             showToast(`${provider.name} gagal format JSON, coba provider lain...`, 'warning', 2500);
             continue;
@@ -999,11 +1044,12 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
       if (requestId === currentRequestId) {
         setLoading(false);
         if (!success) {
+          const errorDetail = lastError?.detail ? `<br><br><small style="opacity:0.7">Detail: ${escapeHtml(String(lastError.detail).substring(0, 200))}</small>` : '';
           showError('<b>Semua provider AI sedang sibuk atau gagal.</b><br><br>' +
             '<b>Solusi:</b><br>' +
             '• Tunggu 1-2 menit lalu coba lagi<br>' +
-            '• Isi Gemini API Key Anda di menu ⚙️ sebagai cadangan<br>' +
-            '• Hubungi developer untuk menambah provider baru');
+            '• Isi Gemini API Key Anda di menu ⚙️ sebagai prioritas<br>' +
+            '• Pastikan Groq/Cerebras API Key masih aktif' + errorDetail);
           showToast('Semua provider gagal', 'error');
         }
       }
@@ -1194,8 +1240,8 @@ Balas HANYA dengan JSON valid tanpa teks pengantar/penutup/markdown:
 
     updateProviderIndicators();
 
-    console.log('%cJURNALIS PRO v3.0', 'color:#7c3aed;font-size:20px;font-weight:bold');
-    console.log('%cGroq + Cerebras (tertanam) → Gemini (user optional)', 'color:#64748b');
+    console.log('%cJURNALIS PRO v3.1', 'color:#7c3aed;font-size:20px;font-weight:bold');
+    console.log('%cPrioritas: Gemini (user) → Groq → Cerebras', 'color:#64748b');
   </script>
 </body>
 </html>
